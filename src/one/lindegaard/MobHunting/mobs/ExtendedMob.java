@@ -1,5 +1,9 @@
 package one.lindegaard.MobHunting.mobs;
 
+import net.citizensnpcs.api.npc.NPC;
+import one.lindegaard.MobHunting.Messages;
+import one.lindegaard.MobHunting.MobHunting;
+import one.lindegaard.MobHunting.compatibility.*;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -7,32 +11,39 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Entity;
 import org.bukkit.inventory.ItemStack;
 
-import net.citizensnpcs.api.npc.NPC;
-import one.lindegaard.MobHunting.Messages;
-import one.lindegaard.MobHunting.MobHunting;
-import one.lindegaard.MobHunting.compatibility.CitizensCompat;
-import one.lindegaard.MobHunting.compatibility.CustomMobsCompat;
-import one.lindegaard.MobHunting.compatibility.InfernalMobsCompat;
-import one.lindegaard.MobHunting.compatibility.MysteriousHalloweenCompat;
-import one.lindegaard.MobHunting.compatibility.MythicMobsCompat;
-import one.lindegaard.MobHunting.compatibility.SmartGiantsCompat;
-import one.lindegaard.MobHunting.compatibility.TARDISWeepingAngelsCompat;
-
 public class ExtendedMob {
 
 	private Integer mob_id; // The unique mob_id from mh_Mobs
 	private MobPlugin mobPlugin; // Plugin_id from mh_Plugins
 	private String mobtype; // mobtype NOT unique
+	private CustomMobsCompat customMobsCompat;
+	private Messages messages;
+	private MythicMobsCompat mythicMobsCompat;
+	private CitizensCompat citizensCompat;
+	private TARDISWeepingAngelsCompat tARDISWeepingAngelsCompat;
+	private MysteriousHalloweenCompat mysteriousHalloweenCompat;
 
-	public ExtendedMob(Integer mob_id, MobPlugin mobPlugin, String mobtype) {
+	public ExtendedMob(Integer mob_id, MobPlugin mobPlugin, String mobtype, CustomMobsCompat customMobsCompat, Messages messages, MythicMobsCompat mythicMobsCompat, CitizensCompat citizensCompat, TARDISWeepingAngelsCompat tARDISWeepingAngelsCompat, MysteriousHalloweenCompat mysteriousHalloweenCompat) {
 		this.mob_id = mob_id;
 		this.mobPlugin = mobPlugin;
 		this.mobtype = mobtype;
+		this.customMobsCompat = customMobsCompat;
+		this.messages = messages;
+		this.mythicMobsCompat = mythicMobsCompat;
+		this.citizensCompat = citizensCompat;
+		this.tARDISWeepingAngelsCompat = tARDISWeepingAngelsCompat;
+		this.mysteriousHalloweenCompat = mysteriousHalloweenCompat;
 	}
 
-	public ExtendedMob(MobPlugin mobPlugin, String mobtype) {
+	public ExtendedMob(MobPlugin mobPlugin, String mobtype, CustomMobsCompat customMobsCompat, Messages messages, MythicMobsCompat mythicMobsCompat, CitizensCompat citizensCompat, TARDISWeepingAngelsCompat tARDISWeepingAngelsCompat, MysteriousHalloweenCompat mysteriousHalloweenCompat) {
 		this.mobPlugin = mobPlugin;
 		this.mobtype = mobtype;
+		this.customMobsCompat = customMobsCompat;
+		this.messages = messages;
+		this.mythicMobsCompat = mythicMobsCompat;
+		this.citizensCompat = citizensCompat;
+		this.tARDISWeepingAngelsCompat = tARDISWeepingAngelsCompat;
+		this.mysteriousHalloweenCompat = mysteriousHalloweenCompat;
 	}
 
 	/**
@@ -90,22 +101,22 @@ public class ExtendedMob {
 		case Minecraft:
 			return mobtype;
 		case MythicMobs:
-			String name = MythicMobsCompat.getMobRewardData().get(mobtype).getMobName();
+			String name = mythicMobsCompat.getMobRewardData().get(mobtype).getMobName();
 			if (name == null || name.equals(""))
-				name = MythicMobsCompat.getMobRewardData().get(mobtype).getMobType();
+				name = mythicMobsCompat.getMobRewardData().get(mobtype).getMobType();
 			return name;
 		case Citizens:
-			NPC npc = CitizensCompat.getCitizensPlugin().getNPCRegistry().getById(Integer.valueOf(mobtype));
+			NPC npc = citizensCompat.getCitizensPlugin().getNPCRegistry().getById(Integer.valueOf(mobtype));
 			if (npc != null)
 				return npc.getName();
 			else
 				return "";
 		case TARDISWeepingAngels:
-			return TARDISWeepingAngelsCompat.getMobRewardData().get(mobtype).getMobName();
+			return tARDISWeepingAngelsCompat.getMobRewardData().get(mobtype).getMobName();
 		case CustomMobs:
-			return CustomMobsCompat.getMobRewardData().get(mobtype).getMobName();
+			return customMobsCompat.getMobRewardData().get(mobtype).getMobName();
 		case MysteriousHalloween:
-			return MysteriousHalloweenCompat.getMobRewardData().get(mobtype).getMobName();
+			return mysteriousHalloweenCompat.getMobRewardData().get(mobtype).getMobName();
 		case SmartGiants:
 			return "SmartGiant";
 		case InfernalMobs:
@@ -120,25 +131,26 @@ public class ExtendedMob {
 
 	public String getFriendlyName() {
 		if (mobPlugin == MobPlugin.Minecraft)
-			return Messages.getString("mobs." + mobtype + ".name");
+			return messages.getString("mobs." + mobtype + ".name");
 		else
-			return Messages.getString("mobs." + mobPlugin.name() + "_" + mobtype + ".name");
+			return messages.getString("mobs." + mobPlugin.name() + "_" + mobtype + ".name");
 	}
 
+	// todo why doing that shit splitt it! Interface with it!
 	public int getProgressAchievementLevel1() {
 		switch (mobPlugin) {
 		case Minecraft:
 			return MinecraftMob.getMinecraftMobType(mobtype).getProgressAchievementLevel1();
 		case MythicMobs:
-			return MythicMobsCompat.getProgressAchievementLevel1(mobtype);
+			return mythicMobsCompat.getProgressAchievementLevel1(mobtype);
 		case Citizens:
-			return CitizensCompat.getProgressAchievementLevel1(mobtype);
+			return citizensCompat.getProgressAchievementLevel1(mobtype);
 		case MysteriousHalloween:
-			return MysteriousHalloweenCompat.getProgressAchievementLevel1(mobtype);
+			return mysteriousHalloweenCompat.getProgressAchievementLevel1(mobtype);
 		case TARDISWeepingAngels:
-			return TARDISWeepingAngelsCompat.getProgressAchievementLevel1(mobtype);
+			return tARDISWeepingAngelsCompat.getProgressAchievementLevel1(mobtype);
 		case CustomMobs:
-			return CustomMobsCompat.getProgressAchievementLevel1(mobtype);
+			return customMobsCompat.getProgressAchievementLevel1(mobtype);
 		case SmartGiants:
 			return SmartGiantsCompat.getProgressAchievementLevel1(mobtype);
 		case InfernalMobs:
@@ -161,7 +173,7 @@ public class ExtendedMob {
 	}
 
 	public boolean matches(Entity entity) {
-		ExtendedMob mob = MobHunting.getExtendedMobManager().getExtendedMobFromEntity(entity);
+		ExtendedMob mob = MobHunting.getInstance().getExtendedMobManager().getExtendedMobFromEntity(entity);
 		return mobtype.equalsIgnoreCase(mob.mobtype);
 	}
 

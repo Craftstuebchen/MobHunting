@@ -1,8 +1,7 @@
 package one.lindegaard.MobHunting.storage;
 
+import one.lindegaard.MobHunting.ConfigManager;
 import org.bukkit.OfflinePlayer;
-
-import one.lindegaard.MobHunting.MobHunting;
 
 public class PlayerSettings {
 	private OfflinePlayer player;
@@ -16,9 +15,9 @@ public class PlayerSettings {
 		this.mute = mute;
 	}
 
-	public PlayerSettings(OfflinePlayer player) {
+	public PlayerSettings(ConfigManager configManager,OfflinePlayer player) {
 		this.player = player;
-		this.learning_mode = MobHunting.getConfigManager().learningMode;
+		this.learning_mode = configManager.learningMode;
 		this.mute = false;
 	}
 

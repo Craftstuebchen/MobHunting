@@ -1,26 +1,26 @@
 package one.lindegaard.MobHunting.compatibility;
 
+import io.puharesource.mc.titlemanager.api.ActionbarTitleObject;
+import io.puharesource.mc.titlemanager.api.TitleObject;
+import io.puharesource.mc.titlemanager.api.v2.TitleManagerAPI;
+import one.lindegaard.MobHunting.ConfigManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
-import io.puharesource.mc.titlemanager.api.ActionbarTitleObject;
-import io.puharesource.mc.titlemanager.api.TitleObject;
-import io.puharesource.mc.titlemanager.api.v2.TitleManagerAPI;
-import one.lindegaard.MobHunting.MobHunting;
-
-@SuppressWarnings("deprecation")
 public class TitleManagerCompat {
 
-	private static Plugin mPlugin;
-	private static TitleManagerAPI api;
-	private static boolean supported = false;
+	private  Plugin mPlugin;
+	private  TitleManagerAPI api;
+	private  boolean supported = false;
+	private ConfigManager configManager;
 
 	// https://www.spigotmc.org/resources/titlemanager.1049/
 
-	public TitleManagerCompat() {
+	public TitleManagerCompat(ConfigManager configManager) {
+		this.configManager = configManager;
 		if (isDisabledInConfig()) {
 			Bukkit.getLogger().info("[MobHunting] Compatibility with TitleManager is disabled in config.yml");
 		} else {
@@ -46,19 +46,19 @@ public class TitleManagerCompat {
 		return (TitleManagerAPI) mPlugin;
 	}
 
-	public static boolean isSupported() {
+	public  boolean isSupported() {
 		return supported;
 	}
 
-	public static boolean isDisabledInConfig() {
-		return MobHunting.getConfigManager().disableIntegrationTitleManager;
+	public  boolean isDisabledInConfig() {
+		return configManager.disableIntegrationTitleManager;
 	}
 
-	public static boolean isEnabledInConfig() {
-		return !MobHunting.getConfigManager().disableIntegrationTitleManager;
+	public  boolean isEnabledInConfig() {
+		return !configManager.disableIntegrationTitleManager;
 	}
 
-	public static void setActionBar(Player player, String message) {
+	public  void setActionBar(Player player, String message) {
 		if (supported) {
 
 			if (api != null) {
@@ -70,7 +70,7 @@ public class TitleManagerCompat {
 		}
 	}
 
-	public static void sendTitles(Player player, String title, String subtitle, int fadein, int stay, int fadeout) {
+	public  void sendTitles(Player player, String title, String subtitle, int fadein, int stay, int fadeout) {
 		if (supported) {
 
 			if (api != null) {

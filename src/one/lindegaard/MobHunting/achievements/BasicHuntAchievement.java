@@ -1,47 +1,46 @@
 package one.lindegaard.MobHunting.achievements;
 
+import one.lindegaard.MobHunting.ConfigManager;
+import one.lindegaard.MobHunting.Messages;
+import one.lindegaard.MobHunting.mobs.ExtendedMob;
+import one.lindegaard.MobHunting.mobs.ExtendedMobManager;
+import one.lindegaard.MobHunting.mobs.MobPlugin;
 import org.bukkit.inventory.ItemStack;
 
-import one.lindegaard.MobHunting.Messages;
-import one.lindegaard.MobHunting.MobHunting;
-import one.lindegaard.MobHunting.mobs.ExtendedMob;
-import one.lindegaard.MobHunting.mobs.MobPlugin;
+public class BasicHuntAchievement extends ProgressAchievement {
 
-public class BasicHuntAchievement implements ProgressAchievement {
-	private ExtendedMob mExtendedMob;
-
-	public BasicHuntAchievement(ExtendedMob extendedMob) {
-		mExtendedMob = extendedMob;
+	public BasicHuntAchievement(ConfigManager configManager, AchievementManager achievementManager, ExtendedMobManager extendedMobManager, ExtendedMob extendedMob) {
+		super(configManager, achievementManager, extendedMobManager, extendedMob);
 	}
 
 	@Override
 	public String getName() {
-		return Messages.getString("achievements.hunter.1.name", "mob", mExtendedMob.getFriendlyName());
+		return Messages.getString("achievements.hunter.1.name", "mob", extendedMob.getFriendlyName());
 	}
 
 	@Override
 	public String getID() {
-		if (mExtendedMob.getMobPlugin() == MobPlugin.Minecraft)
-			return "hunting-level1-" + mExtendedMob.getMobName().toLowerCase();
+		if (extendedMob.getMobPlugin() == MobPlugin.Minecraft)
+			return "hunting-level1-" + extendedMob.getMobName().toLowerCase();
 		else
-			return mExtendedMob.getMobPlugin().name().toLowerCase() + "-hunting-level1-" + mExtendedMob.getMobtype().toLowerCase();
+			return extendedMob.getMobPlugin().name().toLowerCase() + "-hunting-level1-" + extendedMob.getMobtype().toLowerCase();
 
 	}
 
 	@Override
 	public String getDescription() {
 		return Messages.getString("achievements.hunter.1.description", "count", getNextLevel(), "mob",
-				mExtendedMob.getFriendlyName());
+				extendedMob.getFriendlyName());
 	}
 
 	@Override
 	public double getPrize() {
-		return MobHunting.getConfigManager().specialHunter1;
+		return configManager.specialHunter1;
 	}
 
 	@Override
 	public int getNextLevel() {
-		return mExtendedMob.getProgressAchievementLevel1();
+		return extendedMob.getProgressAchievementLevel1();
 	}
 
 	@Override
@@ -51,29 +50,29 @@ public class BasicHuntAchievement implements ProgressAchievement {
 
 	@Override
 	public String nextLevelId() {
-		if (mExtendedMob.getMobPlugin() == MobPlugin.Minecraft)
-			return "hunting-level2-" + mExtendedMob.getMobtype().toLowerCase();
+		if (extendedMob.getMobPlugin() == MobPlugin.Minecraft)
+			return "hunting-level2-" + extendedMob.getMobtype().toLowerCase();
 		else
-			return mExtendedMob.getMobPlugin() + "-hunting-level2-" + mExtendedMob.getMobtype().toLowerCase();
+			return extendedMob.getMobPlugin() + "-hunting-level2-" + extendedMob.getMobtype().toLowerCase();
 	}
 
 	@Override
 	public String getPrizeCmd() {
-		return MobHunting.getConfigManager().specialHunter1Cmd;
+		return configManager.specialHunter1Cmd;
 	}
 
 	@Override
 	public String getPrizeCmdDescription() {
-		return MobHunting.getConfigManager().specialHunter1CmdDesc;
+		return configManager.specialHunter1CmdDesc;
 	}
 
 	@Override
 	public ItemStack getSymbol() {
-		return mExtendedMob.getCustomHead(mExtendedMob.getMobName(), 1, 0);
+		return extendedMob.getCustomHead(extendedMob.getMobName(), 1, 0);
 	}
 
 	@Override
 	public ExtendedMob getExtendedMob() {
-		return mExtendedMob;
+		return extendedMob;
 	}
 }

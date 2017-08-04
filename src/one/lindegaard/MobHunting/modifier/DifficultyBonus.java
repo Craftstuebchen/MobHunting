@@ -1,8 +1,10 @@
 package one.lindegaard.MobHunting.modifier;
 
-import java.util.Iterator;
-import java.util.Map.Entry;
-
+import one.lindegaard.MobHunting.ConfigManager;
+import one.lindegaard.MobHunting.DamageInformation;
+import one.lindegaard.MobHunting.HuntData;
+import one.lindegaard.MobHunting.Messages;
+import one.lindegaard.MobHunting.compatibility.ExtraHardModeCompat;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Difficulty;
@@ -11,13 +13,14 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
-import one.lindegaard.MobHunting.DamageInformation;
-import one.lindegaard.MobHunting.HuntData;
-import one.lindegaard.MobHunting.Messages;
-import one.lindegaard.MobHunting.MobHunting;
-import one.lindegaard.MobHunting.compatibility.ExtraHardModeCompat;
+import java.util.Iterator;
+import java.util.Map.Entry;
 
-public class DifficultyBonus implements IModifier {
+public class DifficultyBonus extends IModifier {
+
+	public DifficultyBonus(ConfigManager configManager) {
+		super(configManager);
+	}
 
 	@Override
 	public String getName() {
@@ -29,7 +32,7 @@ public class DifficultyBonus implements IModifier {
 			EntityDamageByEntityEvent lastDamageCause) {
 
 		Difficulty worldDifficulty = killer.getWorld().getDifficulty();
-		Iterator<Entry<String, String>> difficulties = MobHunting.getConfigManager().difficultyMultiplier.entrySet()
+		Iterator<Entry<String, String>> difficulties = configManager.difficultyMultiplier.entrySet()
 				.iterator();
 		String multiplierStr = "1";
 		while (difficulties.hasNext()) {
@@ -64,7 +67,7 @@ public class DifficultyBonus implements IModifier {
 	public boolean doesApply(Entity deadEntity, Player killer, HuntData data, DamageInformation extraInfo,
 			EntityDamageByEntityEvent lastDamageCause) {
 		Difficulty worldDifficulty = killer.getWorld().getDifficulty();
-		Iterator<Entry<String, String>> difficulties = MobHunting.getConfigManager().difficultyMultiplier.entrySet()
+		Iterator<Entry<String, String>> difficulties = configManager.difficultyMultiplier.entrySet()
 				.iterator();
 		String multiplierStr = "1";
 		while (difficulties.hasNext()) {
@@ -83,7 +86,7 @@ public class DifficultyBonus implements IModifier {
 						break;
 					}
 				} catch (Exception e) {
-					if (MobHunting.getConfigManager().killDebug)
+					if (configManager.killDebug)
 						e.printStackTrace();
 				}
 			}

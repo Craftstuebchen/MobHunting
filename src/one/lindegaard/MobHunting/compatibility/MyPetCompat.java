@@ -1,5 +1,12 @@
 package one.lindegaard.MobHunting.compatibility;
 
+import de.Keyle.MyPet.MyPetPlugin;
+import de.Keyle.MyPet.api.entity.MyPetBukkitEntity;
+import one.lindegaard.MobHunting.ConfigManager;
+import one.lindegaard.MobHunting.MobHunting;
+import one.lindegaard.MobHunting.MobHuntingManager;
+import one.lindegaard.MobHunting.achievements.AchievementManager;
+import one.lindegaard.MobHunting.mobs.ExtendedMobManager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -9,105 +16,110 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 
-import de.Keyle.MyPet.MyPetPlugin;
-import de.Keyle.MyPet.api.entity.MyPetBukkitEntity;
-import one.lindegaard.MobHunting.MobHunting;
-
 public class MyPetCompat implements Listener {
-	private static boolean supported = false;
-	private static MyPetPlugin mPlugin;
+    private boolean supported = false;
+    private MyPetPlugin mPlugin;
 
-	public MyPetCompat() {
-		if (MobHunting.getConfigManager().disableIntegrationMyPet) {
-			Bukkit.getLogger().info("[MobHunting] Compatibility with MyPet is disabled in config.yml");
-		} else {
-			mPlugin = (MyPetPlugin) Bukkit.getPluginManager().getPlugin("MyPet");
-			Bukkit.getPluginManager().registerEvents(this, MobHunting.getInstance());
-			Bukkit.getLogger().info("[MobHunting] Enabling compatibility with MyPet ("
-					+ getMyPetPlugin().getDescription().getVersion() + ")");
-			supported = true;
-		}
-	}
+    private ConfigManager configManager;
+    private MobHuntingManager mobHuntingManager;
+    private AchievementManager achievementManager;
+    private ExtendedMobManager extendedMobManager;
 
-	// **************************************************************************
-	// OTHER FUNCTIONS
-	// **************************************************************************
+    public MyPetCompat(ConfigManager configManager, MobHuntingManager mobHuntingManager,
+                       AchievementManager achievementManager, ExtendedMobManager extendedMobManager) {
+        this.configManager = configManager;
+        this.mobHuntingManager = mobHuntingManager;
+        this.achievementManager = achievementManager;
+        this.extendedMobManager = extendedMobManager;
 
-	public static boolean isSupported() {
-		return supported;
-	}
+        if (configManager.disableIntegrationMyPet) {
+            Bukkit.getLogger().info("[MobHunting] Compatibility with MyPet is disabled in config.yml");
+        } else {
+            mPlugin = (MyPetPlugin) Bukkit.getPluginManager().getPlugin("MyPet");
+            Bukkit.getPluginManager().registerEvents(this, MobHunting.getInstance());
+            Bukkit.getLogger().info("[MobHunting] Enabling compatibility with MyPet ("
+                    + getMyPetPlugin().getDescription().getVersion() + ")");
+            supported = true;
+        }
+    }
 
-	public static MyPetPlugin getMyPetPlugin() {
-		return mPlugin;
-	}
+    // **************************************************************************
+    // OTHER FUNCTIONS
+    // **************************************************************************
 
-	public static boolean isMyPet(Entity entity) {
-		if (isSupported())
-			return entity instanceof MyPetBukkitEntity;
-		return false;
-	}
+    public boolean isSupported() {
+        return supported;
+    }
 
-	public static boolean isEnabledInConfig() {
-		return !MobHunting.getConfigManager().disableIntegrationMyPet;
-	}
+    public MyPetPlugin getMyPetPlugin() {
+        return mPlugin;
+    }
 
-	public static boolean isKilledByMyPet(Entity entity) {
-		if (isSupported() && (entity.getLastDamageCause() instanceof EntityDamageByEntityEvent)) {
-			EntityDamageByEntityEvent dmg = (EntityDamageByEntityEvent) entity.getLastDamageCause();
-			if (dmg != null && (dmg.getDamager() instanceof MyPetBukkitEntity))
-				return true;
-		}
-		return false;
-	}
+    public boolean isMyPet(Entity entity) {
+        if (isSupported())
+            return entity instanceof MyPetBukkitEntity;
+        return false;
+    }
 
-	public static MyPetBukkitEntity getMyPet(Entity entity) {
-		EntityDamageByEntityEvent dmg = (EntityDamageByEntityEvent) entity.getLastDamageCause();
+    public boolean isEnabledInConfig() {
+        return !configManager.disableIntegrationMyPet;
+    }
 
-		if (dmg == null || !(dmg.getDamager() instanceof MyPetBukkitEntity))
-			return null;
+    public boolean isKilledByMyPet(Entity entity) {
+        if (isSupported() && (entity.getLastDamageCause() instanceof EntityDamageByEntityEvent)) {
+            EntityDamageByEntityEvent dmg = (EntityDamageByEntityEvent) entity.getLastDamageCause();
+            if (dmg != null && (dmg.getDamager() instanceof MyPetBukkitEntity))
+                return true;
+        }
+        return false;
+    }
 
-		MyPetBukkitEntity killer = (MyPetBukkitEntity) dmg.getDamager();
+    public MyPetBukkitEntity getMyPet(Entity entity) {
+        EntityDamageByEntityEvent dmg = (EntityDamageByEntityEvent) entity.getLastDamageCause();
 
-		return killer;
-	}
+        if (dmg == null || !(dmg.getDamager() instanceof MyPetBukkitEntity))
+            return null;
 
-	public static Player getMyPetOwner(Entity entity) {
+        return (MyPetBukkitEntity) dmg.getDamager();
+    }
 
-		if (!(entity.getLastDamageCause() instanceof EntityDamageByEntityEvent))
-			return null;
+    public Player getMyPetOwner(Entity entity) {
 
-		EntityDamageByEntityEvent dmg = (EntityDamageByEntityEvent) entity.getLastDamageCause();
+        if (!(entity.getLastDamageCause() instanceof EntityDamageByEntityEvent))
+            return null;
 
-		if (dmg == null || !(dmg.getDamager() instanceof MyPetBukkitEntity))
-			return null;
+        EntityDamageByEntityEvent dmg = (EntityDamageByEntityEvent) entity.getLastDamageCause();
 
-		MyPetBukkitEntity killer = (MyPetBukkitEntity) dmg.getDamager();
+        if (dmg == null || !(dmg.getDamager() instanceof MyPetBukkitEntity))
+            return null;
 
-		if (killer.getOwner() == null)
-			return null;
+        MyPetBukkitEntity killer = (MyPetBukkitEntity) dmg.getDamager();
 
-		return killer.getOwner().getPlayer();
-	}
+        if (killer.getOwner() == null)
+            return null;
 
-	// **************************************************************************
-	// EVENTS
-	// **************************************************************************
-	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-	private void onMyPetKillMob(EntityDeathEvent event) {
-		if (!MobHunting.getMobHuntingManager().isHuntEnabledInWorld(event.getEntity().getWorld())
-				|| !(event.getEntity().getLastDamageCause() instanceof EntityDamageByEntityEvent))
-			return;
+        return killer.getOwner().getPlayer();
+    }
 
-		EntityDamageByEntityEvent dmg = (EntityDamageByEntityEvent) event.getEntity().getLastDamageCause();
-		if (dmg == null || !(dmg.getDamager() instanceof MyPetBukkitEntity))
-			return;
+    // **************************************************************************
+    // EVENTS
+    // **************************************************************************
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    private void onMyPetKillMob(EntityDeathEvent event) {
+        if (!mobHuntingManager.isHuntEnabledInWorld(event.getEntity().getWorld())
+                || !(event.getEntity().getLastDamageCause() instanceof EntityDamageByEntityEvent))
+            return;
 
-		MyPetBukkitEntity killer = (MyPetBukkitEntity) dmg.getDamager();
-		if (killer.getOwner() != null) {
-			Player owner = killer.getOwner().getPlayer();
-			if (owner != null && MobHunting.getMobHuntingManager().isHuntEnabled(owner))
-				MobHunting.getAchievementManager().awardAchievementProgress("fangmaster", owner,
-						MobHunting.getExtendedMobManager().getExtendedMobFromEntity(event.getEntity()), 1);
-		}
-	}
+        EntityDamageByEntityEvent dmg = (EntityDamageByEntityEvent) event.getEntity().getLastDamageCause();
+        if (dmg == null || !(dmg.getDamager() instanceof MyPetBukkitEntity))
+            return;
+
+        MyPetBukkitEntity killer = (MyPetBukkitEntity) dmg.getDamager();
+        if (killer.getOwner() != null) {
+            Player owner = killer.getOwner().getPlayer();
+            if (owner != null && mobHuntingManager.isHuntEnabled(owner))
+                achievementManager.awardAchievementProgress("fangmaster", owner,
+                        extendedMobManager.getExtendedMobFromEntity(event.getEntity()), 1);
+        }
+    }
 }

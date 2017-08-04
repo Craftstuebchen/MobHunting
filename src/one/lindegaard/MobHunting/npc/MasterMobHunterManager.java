@@ -1,10 +1,17 @@
 package one.lindegaard.MobHunting.npc;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
-
+import net.citizensnpcs.api.CitizensAPI;
+import net.citizensnpcs.api.ai.speech.SpeechContext;
+import net.citizensnpcs.api.event.NPCLeftClickEvent;
+import net.citizensnpcs.api.event.NPCRightClickEvent;
+import net.citizensnpcs.api.event.NPCSpawnEvent;
+import net.citizensnpcs.api.npc.NPC;
+import net.citizensnpcs.api.trait.Trait;
+import one.lindegaard.MobHunting.ConfigManager;
+import one.lindegaard.MobHunting.Messages;
+import one.lindegaard.MobHunting.MobHunting;
+import one.lindegaard.MobHunting.compatibility.CitizensCompat;
+import one.lindegaard.MobHunting.util.Misc;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -21,17 +28,10 @@ import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
 
-import net.citizensnpcs.api.CitizensAPI;
-import net.citizensnpcs.api.ai.speech.SpeechContext;
-import net.citizensnpcs.api.event.NPCLeftClickEvent;
-import net.citizensnpcs.api.event.NPCRightClickEvent;
-import net.citizensnpcs.api.event.NPCSpawnEvent;
-import net.citizensnpcs.api.npc.NPC;
-import net.citizensnpcs.api.trait.Trait;
-import one.lindegaard.MobHunting.Messages;
-import one.lindegaard.MobHunting.MobHunting;
-import one.lindegaard.MobHunting.compatibility.CitizensCompat;
-import one.lindegaard.MobHunting.util.Misc;
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Iterator;
 
 public class MasterMobHunterManager implements Listener {
 
@@ -41,23 +41,29 @@ public class MasterMobHunterManager implements Listener {
 	private YamlConfiguration config = new YamlConfiguration();
 
 	private BukkitTask mUpdater = null;
+	private CitizensCompat citizensCompat;
+	private ConfigManager configManager;
+	private Messages messages;
 
-	public MasterMobHunterManager() {
-	}
+	public MasterMobHunterManager(CitizensCompat citizensCompat, ConfigManager configManager, Messages messages) {
+		this.citizensCompat = citizensCompat;
+		this.configManager = configManager;
+        this.messages = messages;
+    }
 
 	public static HashMap<Integer, MasterMobHunter> getMasterMobHunterManager() {
 		return mMasterMobHunter;
 	}
 
 	public void initialize() {
-		if (CitizensCompat.isSupported()) {
+		if (citizensCompat.isSupported()) {
 			loadData();
 			Bukkit.getPluginManager().registerEvents(new MasterMobHunterTrait(), MobHunting.getInstance());
-			Bukkit.getPluginManager().registerEvents(new MasterMobHunterManager(), MobHunting.getInstance());
+			Bukkit.getPluginManager().registerEvents(this, MobHunting.getInstance());
 			Bukkit.getPluginManager().registerEvents(new MasterMobHunterSign(MobHunting.getInstance()),
 					MobHunting.getInstance());
 			mUpdater = Bukkit.getScheduler().runTaskTimer(MobHunting.getInstance(), new Updater(), 1L,
-					MobHunting.getConfigManager().masterMobHuntercheckEvery * 20);
+					configManager.masterMobHuntercheckEvery * 20);
 
 		}
 	}
@@ -66,34 +72,20 @@ public class MasterMobHunterManager implements Listener {
 		mUpdater = Bukkit.getScheduler().runTaskAsynchronously(MobHunting.getInstance(), new Updater());
 	}
 
-	private class Updater implements Runnable {
-		@Override
-		public void run() {
-			if (CitizensCompat.isSupported()) {
-				int n = 0;
-				for (Iterator<NPC> npcList = CitizensAPI.getNPCRegistry().iterator(); npcList.hasNext();) {
-					NPC npc = npcList.next();
-					if (isMasterMobHunter(npc.getEntity())) {
-						update(npc);
-						n++;
-					}
-				}
-				if (n > 0)
-					Messages.debug("Refreshed %s MasterMobHunters", n);
-			} else {
-				Messages.debug("MasterMobHunterManager: Citizens is disabled.");
-			}
-		}
-	}
-
 	public void update(NPC npc) {
 		if (hasMasterMobHunterData(npc)) {
-			MasterMobHunter mmh = new MasterMobHunter(npc);
-			if (mmh != null) {
-				mmh.update();
-				mMasterMobHunter.put(npc.getId(), mmh);
-			}
-		}
+			MasterMobHunter mmh = new MasterMobHunter(npc, masterMobHunterSign);
+            mmh.update();
+            mMasterMobHunter.put(npc.getId(), mmh);
+        }
+	}
+
+	public boolean isMasterMobHunter(Entity entity) {
+		if (CitizensAPI.getNPCRegistry().isNPC(entity)) {
+			NPC npc = citizensCompat.getNPC(entity);
+			return (npc.hasTrait(MasterMobHunterTrait.class));
+		} else
+			return false;
 	}
 
 	public static boolean hasMasterMobHunterData(NPC npc) {
@@ -125,22 +117,6 @@ public class MasterMobHunterManager implements Listener {
 			mUpdater.cancel();
 	}
 
-	public boolean isMasterMobHunter(Entity entity) {
-		if (CitizensAPI.getNPCRegistry().isNPC(entity)) {
-			NPC npc = CitizensCompat.getNPC(entity);
-			return (npc.hasTrait(MasterMobHunterTrait.class));
-		} else
-			return false;
-	}
-
-	public static boolean isMasterMobHunter(NPC npc) {
-		return (npc.hasTrait(MasterMobHunterTrait.class));
-	}
-
-	// ****************************************************************************
-	// Save & Load
-	// ****************************************************************************
-
 	public void loadData() {
 		try {
 			if (!file.exists())
@@ -151,7 +127,7 @@ public class MasterMobHunterManager implements Listener {
 				ConfigurationSection section = config.getConfigurationSection(key);
 				NPC npc = CitizensAPI.getNPCRegistry().getById(Integer.parseInt(key));
 				if (npc != null && npc.hasTrait(MasterMobHunterTrait.class)) {
-					MasterMobHunter mmh = new MasterMobHunter(npc);
+					MasterMobHunter mmh = new MasterMobHunter(npc, masterMobHunterSign);
 					if (npc.getTrait(MasterMobHunterTrait.class).stattype == null) {
 						mmh.read(section);
 						n++;
@@ -162,21 +138,25 @@ public class MasterMobHunterManager implements Listener {
 					mmh.getHome();
 				}
 			}
-			Messages.debug("The file citizens-MasterMobHunter.yml is not used anymore and can be deleted.");
+			messages.debug("The file citizens-MasterMobHunter.yml is not used anymore and can be deleted.");
 			if (n > 0)
-				Messages.debug("Loaded %s MasterMobHunter Traits's from file.", n);
+				messages.debug("Loaded %s MasterMobHunter Traits's from file.", n);
 		} catch (IOException | InvalidConfigurationException e) {
 			e.printStackTrace();
 		}
 	}
 
+	public static boolean isMasterMobHunter(NPC npc) {
+		return (npc.hasTrait(MasterMobHunterTrait.class));
+	}
+
 	// ****************************************************************************
-	// Events
+	// Save & Load
 	// ****************************************************************************
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onClick(NPCLeftClickEvent event) {
-		Messages.debug("NPCLeftClickEvent");
+		messages.debug("NPCLeftClickEvent");
 		NPC npc = event.getNPC();
 		if (isMasterMobHunter(npc)) {
 			@SuppressWarnings("deprecation")
@@ -206,8 +186,8 @@ public class MasterMobHunterManager implements Listener {
 				update(npc);
 				MasterMobHunter mmh = mMasterMobHunter.get(npc.getId());
 				mmh.update();
-				Messages.playerActionBarMessage(event.getClicker(),
-						Messages.getString("mobhunting.npc.clickednpc", "killer",
+				messages.playerActionBarMessage(event.getClicker(),
+                        messages.getString("mobhunting.npc.clickednpc", "killer",
 								CitizensAPI.getNPCRegistry().getById(npc.getId()).getName(), "rank", mmh.getRank(),
 								"numberofkills", mmh.getNumberOfKills(), "stattype", mmh.getStatType().translateName(),
 								"period", mmh.getPeriod().translateNameFriendly(), "npcid", npc.getId()));
@@ -216,15 +196,19 @@ public class MasterMobHunterManager implements Listener {
 		}
 	}
 
+	// ****************************************************************************
+	// Events
+	// ****************************************************************************
+
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
 	public void onKilledTarget(EntityDeathEvent event) {
 		if (isMasterMobHunter(event.getEntity().getKiller()) && event.getEntity() instanceof Player) {
-			NPC npc = CitizensCompat.getNPC(event.getEntity().getKiller());
+			NPC npc = citizensCompat.getNPC(event.getEntity().getKiller());
 			final Player player = (Player) event.getEntity();
 			final NPC npc1 = npc;
 			Bukkit.getScheduler().runTaskLaterAsynchronously(MobHunting.getInstance(), new Runnable() {
 				public void run() {
-					Messages.debug("NPC %s (ID=%s) killed %s - return to home", npc1.getName(), npc1.getId(),
+                    messages.debug("NPC %s (ID=%s) killed %s - return to home", npc1.getName(), npc1.getId(),
 							player.getName());
 					npc1.teleport(mMasterMobHunter.get(npc1.getId()).getHome(), TeleportCause.PLUGIN);
 				}
@@ -238,7 +222,7 @@ public class MasterMobHunterManager implements Listener {
 		if (isMasterMobHunter(npc)) {
 			if (npc.getStoredLocation() != null && mMasterMobHunter.containsKey(npc.getId())
 					&& npc.getStoredLocation().distance(mMasterMobHunter.get(npc.getId()).getHome()) > 0.2) {
-				Messages.debug("NPC %s (ID=%s) return to home", npc.getName(), npc.getId());
+                messages.debug("NPC %s (ID=%s) return to home", npc.getName(), npc.getId());
 				final NPC npc1 = npc;
 				Bukkit.getScheduler().runTaskLaterAsynchronously(MobHunting.getInstance(), new Runnable() {
 					public void run() {
@@ -251,7 +235,7 @@ public class MasterMobHunterManager implements Listener {
 
 	private Trait getSentinelOrSentryTrait(NPC npc) {
 		Trait trait = null;
-		if (CitizensCompat.isSentryOrSentinelOrSentries(npc.getEntity())) {
+		if (citizensCompat.isSentryOrSentinelOrSentries(npc.getEntity())) {
 			if (npc.hasTrait(CitizensAPI.getTraitFactory().getTraitClass("Sentinel")))
 				trait = npc.getTrait(CitizensAPI.getTraitFactory().getTraitClass("Sentinel"));
 			else if (npc.hasTrait(CitizensAPI.getTraitFactory().getTraitClass("Sentry")))
@@ -274,12 +258,32 @@ public class MasterMobHunterManager implements Listener {
 			update(npc);
 			MasterMobHunter mmh = mMasterMobHunter.get(npc.getId());
 			mmh.update();
-			Messages.playerActionBarMessage(event.getClicker(),
-					Messages.getString("mobhunting.npc.clickednpc", "killer",
+            messages.playerActionBarMessage(event.getClicker(),
+                    messages.getString("mobhunting.npc.clickednpc", "killer",
 							CitizensAPI.getNPCRegistry().getById(npc.getId()).getName(), "rank", mmh.getRank(),
 							"numberofkills", mmh.getNumberOfKills(), "stattype", mmh.getStatType().translateName(),
 							"period", mmh.getPeriod().translateNameFriendly(), "npcid", npc.getId()));
 			mMasterMobHunter.put(event.getNPC().getId(), mmh);
+		}
+	}
+
+	private class Updater implements Runnable {
+		@Override
+		public void run() {
+			if (citizensCompat.isSupported()) {
+				int n = 0;
+				for (Iterator<NPC> npcList = CitizensAPI.getNPCRegistry().iterator(); npcList.hasNext();) {
+					NPC npc = npcList.next();
+					if (isMasterMobHunter(npc.getEntity())) {
+						update(npc);
+						n++;
+					}
+				}
+				if (n > 0)
+					messages.debug("Refreshed %s MasterMobHunters", n);
+			} else {
+				messages.debug("MasterMobHunterManager: Citizens is disabled.");
+			}
 		}
 	}
 

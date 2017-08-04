@@ -1,20 +1,19 @@
 package one.lindegaard.MobHunting.modifier;
 
-import org.bukkit.ChatColor;
-import org.bukkit.entity.Ghast;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Monster;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.Projectile;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-
+import one.lindegaard.MobHunting.ConfigManager;
 import one.lindegaard.MobHunting.DamageInformation;
 import one.lindegaard.MobHunting.HuntData;
 import one.lindegaard.MobHunting.Messages;
-import one.lindegaard.MobHunting.MobHunting;
+import org.bukkit.ChatColor;
+import org.bukkit.entity.*;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
-public class FriendleFireBonus implements IModifier
+public class FriendleFireBonus extends IModifier
 {
+	public FriendleFireBonus(ConfigManager configManager) {
+		super(configManager);
+	}
+
 	@Override
 	public String getName()
 	{
@@ -24,7 +23,7 @@ public class FriendleFireBonus implements IModifier
 	@Override
 	public double getMultiplier( Entity deadEntity, Player killer, HuntData data, DamageInformation extraInfo, EntityDamageByEntityEvent lastDamageCause )
 	{
-		return MobHunting.getConfigManager().bonusFriendlyFire;
+		return configManager.bonusFriendlyFire;
 	}
 
 	@Override

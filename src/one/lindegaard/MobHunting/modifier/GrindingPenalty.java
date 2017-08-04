@@ -1,17 +1,23 @@
 package one.lindegaard.MobHunting.modifier;
 
+import one.lindegaard.MobHunting.ConfigManager;
+import one.lindegaard.MobHunting.DamageInformation;
+import one.lindegaard.MobHunting.HuntData;
+import one.lindegaard.MobHunting.Messages;
+import one.lindegaard.MobHunting.grinding.GrindingManager;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
-import one.lindegaard.MobHunting.DamageInformation;
-import one.lindegaard.MobHunting.HuntData;
-import one.lindegaard.MobHunting.Messages;
-import one.lindegaard.MobHunting.MobHunting;
-
-public class GrindingPenalty implements IModifier
+public class GrindingPenalty extends IModifier
 {
+
+	private GrindingManager grindingManager;
+	public GrindingPenalty(ConfigManager configManager, GrindingManager grindingManager) {
+		super(configManager);
+		this.grindingManager = grindingManager;
+	}
 
 	@Override
 	public String getName()
@@ -28,7 +34,7 @@ public class GrindingPenalty implements IModifier
 	@Override
 	public boolean doesApply(Entity deadEntity, Player killer, HuntData data, DamageInformation extraInfo, EntityDamageByEntityEvent lastDamageCause )
 	{
-		if(MobHunting.getConfigManager().grindingDetectionEnabled && !MobHunting.getGrindingManager().isWhitelisted(deadEntity.getLocation()))
+		if(configManager.grindingDetectionEnabled && !grindingManager.isWhitelisted(deadEntity.getLocation()))
 			return data.getDampnerMultiplier() < 1;
 		return false;
 	}

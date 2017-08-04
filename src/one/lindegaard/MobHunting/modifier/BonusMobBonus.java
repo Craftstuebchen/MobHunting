@@ -1,25 +1,28 @@
 package one.lindegaard.MobHunting.modifier;
 
+import one.lindegaard.MobHunting.ConfigManager;
+import one.lindegaard.MobHunting.DamageInformation;
+import one.lindegaard.MobHunting.HuntData;
+import one.lindegaard.MobHunting.Messages;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
-import one.lindegaard.MobHunting.DamageInformation;
-import one.lindegaard.MobHunting.HuntData;
-import one.lindegaard.MobHunting.Messages;
-import one.lindegaard.MobHunting.MobHunting;
+public class BonusMobBonus extends IModifier {
 
-public class BonusMobBonus implements IModifier {
+	public BonusMobBonus(ConfigManager configManager,Messages messages) {
+		super(configManager,messages);
+	}
 
 	@Override
 	public String getName() {
-		return Messages.getString("bonus.bonusmob.name");
+		return messages.getString("bonus.bonusmob.name");
 	}
 
 	@Override
 	public double getMultiplier(Entity deadEntity, Player killer, HuntData data, DamageInformation extraInfo,
 			EntityDamageByEntityEvent lastDamageCause) {
-		return MobHunting.getConfigManager().bonusBonusMob;
+		return configManager.bonusBonusMob;
 	}
 
 	@Override

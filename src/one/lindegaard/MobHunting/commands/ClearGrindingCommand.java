@@ -1,19 +1,26 @@
 package one.lindegaard.MobHunting.commands;
 
-import java.util.Collections;
-import java.util.List;
-
+import one.lindegaard.MobHunting.HuntData;
+import one.lindegaard.MobHunting.Messages;
+import one.lindegaard.MobHunting.MobHunting;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import one.lindegaard.MobHunting.HuntData;
-import one.lindegaard.MobHunting.Messages;
-import one.lindegaard.MobHunting.MobHunting;
+import java.util.Collections;
+import java.util.List;
 
 public class ClearGrindingCommand implements ICommand {
+
+	private Messages messages;
+	private MobHunting mobHunting;
+
+	public ClearGrindingCommand(Messages messages, MobHunting mobHunting) {
+		this.messages = messages;
+		this.mobHunting = mobHunting;
+	}
 
 	@Override
 	public String getName() {
@@ -37,7 +44,7 @@ public class ClearGrindingCommand implements ICommand {
 
 	@Override
 	public String getDescription() {
-		return Messages.getString("mobhunting.commands.cleargrinding.description");
+		return messages.getString("mobhunting.commands.cleargrinding.description");
 	}
 
 	@Override
@@ -56,14 +63,14 @@ public class ClearGrindingCommand implements ICommand {
 			return false;
 
 		Location loc = ((Player) sender).getLocation();
-		MobHunting.getGrindingManager().clearGrindingArea(loc);
+		mobHunting.getGrindingManager().clearGrindingArea(loc);
 
 		for (Player player : Bukkit.getOnlinePlayers()) {
 			HuntData data = new HuntData(player);
 			data.clearGrindingArea(loc);
 		}
 
-		sender.sendMessage(ChatColor.GREEN + Messages.getString("mobhunting.commands.cleargrinding.done"));
+		sender.sendMessage(ChatColor.GREEN + messages.getString("mobhunting.commands.cleargrinding.done"));
 
 		return true;
 	}

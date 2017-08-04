@@ -1,23 +1,24 @@
 package one.lindegaard.MobHunting.compatibility;
 
+import one.lindegaard.MobHunting.ConfigManager;
+import one.lindegaard.MobHunting.util.Misc;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.plugin.Plugin;
-
-import one.lindegaard.MobHunting.MobHunting;
-import one.lindegaard.MobHunting.util.Misc;
 
 public class ProtocolLibCompat {
 
 	private  Plugin mPlugin;
 	private  boolean supported = false;
 	private ProtocolLibHelper protocolLibHelper;
+	private ConfigManager configManager;
 
 	// https://www.spigotmc.org/resources/protocollib.1997/
 
-	public ProtocolLibCompat(ProtocolLibHelper protocolLibHelper) {
+	public ProtocolLibCompat(ProtocolLibHelper protocolLibHelper, ConfigManager configManager) {
 		this.protocolLibHelper = protocolLibHelper;
+		this.configManager = configManager;
 		if (isDisabledInConfig()) {
 			Bukkit.getLogger().info("[MobHunting] Compatibility with ProtocolLib is disabled in config.yml");
 		} else {
@@ -49,11 +50,11 @@ public class ProtocolLibCompat {
 	}
 
 	public  boolean isDisabledInConfig() {
-		return MobHunting.getConfigManager().disableIntegrationProtocolLib;
+		return configManager.disableIntegrationProtocolLib;
 	}
 
 	public  boolean isEnabledInConfig() {
-		return !MobHunting.getConfigManager().disableIntegrationProtocolLib;
+		return !configManager.disableIntegrationProtocolLib;
 	}
 
 }

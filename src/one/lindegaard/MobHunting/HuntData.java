@@ -1,17 +1,16 @@
 package one.lindegaard.MobHunting;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-
+import one.lindegaard.MobHunting.grinding.Area;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
 
-import one.lindegaard.MobHunting.grinding.Area;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 
 public class HuntData{
 
@@ -24,26 +23,30 @@ public class HuntData{
 	private ArrayList<Area> lastGridingAreas;
 	private double reward;
 	private HashMap<String, Double> modifiers;
+	private MobHunting plugin;
+    private Messages messages;
 
-	public HuntData() {
+    public HuntData(MobHunting plugin) {
+		this.plugin = plugin;
+		this.messages = plugin.getMessages();
 		killStreak = 0;
 		dampenedKills = 0;
-		cDampnerRange = MobHunting.getConfigManager().grindingDetectionRange;
+		cDampnerRange = plugin.getConfigManager().grindingDetectionRange;
 		lastKillAreaCenter = null;
-		lastGridingAreas = new ArrayList<Area>();
+		lastGridingAreas = new ArrayList<>();
 		reward = 0;
-		modifiers = new HashMap<String, Double>();
+		modifiers = new HashMap<>();
 
 	}
 
 	public HuntData(Player player) {
 		killStreak = 0;
 		dampenedKills = 0;
-		cDampnerRange = MobHunting.getConfigManager().grindingDetectionRange;
+		cDampnerRange = plugin.getConfigManager().grindingDetectionRange;
 		lastKillAreaCenter = null;
-		lastGridingAreas = new ArrayList<Area>();
+		lastGridingAreas = new ArrayList<>();
 		reward = 0;
-		modifiers = new HashMap<String, Double>();
+		modifiers = new HashMap<>();
 		getHuntDataFromPlayer(player);
 	}
 
@@ -61,7 +64,7 @@ public class HuntData{
 		for (Area area : lastGridingAreas) {
 			if (area.getCenter().getWorld().equals(location.getWorld())) {
 				if (area.getCenter().distance(location) < area.getRange()) {
-					Messages.debug("Found a blacklisted player specific grinding Area: (%s,%s,%s,%s)",
+					messages.debug("Found a blacklisted player specific grinding Area: (%s,%s,%s,%s)",
 							area.getCenter().getWorld().getName(), area.getCenter().getBlockX(),
 							area.getCenter().getBlockY(), area.getCenter().getBlockZ());
 					return area;
@@ -201,13 +204,13 @@ public class HuntData{
 	}
 
 	public int getKillstreakLevel() {
-		if (killStreak < MobHunting.getConfigManager().killstreakLevel1)
+		if (killStreak < plugin.getConfigManager().killstreakLevel1)
 			return 0;
-		else if (killStreak < MobHunting.getConfigManager().killstreakLevel2)
+		else if (killStreak < plugin.getConfigManager().killstreakLevel2)
 			return 1;
-		else if (killStreak < MobHunting.getConfigManager().killstreakLevel3)
+		else if (killStreak < plugin.getConfigManager().killstreakLevel3)
 			return 2;
-		else if (killStreak < MobHunting.getConfigManager().killstreakLevel4)
+		else if (killStreak < plugin.getConfigManager().killstreakLevel4)
 			return 3;
 		else
 			return 4;
@@ -225,13 +228,13 @@ public class HuntData{
 		case 0:
 			return 1.0;
 		case 1:
-			return MobHunting.getConfigManager().killstreakLevel1Mult;
+			return plugin.getConfigManager().killstreakLevel1Mult;
 		case 2:
-			return MobHunting.getConfigManager().killstreakLevel2Mult;
+			return plugin.getConfigManager().killstreakLevel2Mult;
 		case 3:
-			return MobHunting.getConfigManager().killstreakLevel3Mult;
+			return plugin.getConfigManager().killstreakLevel3Mult;
 		default:
-			return MobHunting.getConfigManager().killstreakLevel4Mult;
+			return plugin.getConfigManager().killstreakLevel4Mult;
 		}
 	}
 
@@ -273,33 +276,11 @@ public class HuntData{
 		if (multiplier != 1) {
 			// Give a message notifying of killstreak increase
 			if (getKillstreakLevel() != lastKillstreakLevel) {
-				switch (getKillstreakLevel()) {
-				case 1:
-					Messages.playerBossbarMessage(player,
-							ChatColor.BLUE + Messages.getString("mobhunting.killstreak.level.1") + " " + ChatColor.GRAY
-									+ Messages.getString("mobhunting.killstreak.activated", "multiplier",
-											String.format("%.1f", multiplier)));
-					break;
-				case 2:
-					Messages.playerBossbarMessage(player,
-							ChatColor.BLUE + Messages.getString("mobhunting.killstreak.level.2") + " " + ChatColor.GRAY
-									+ Messages.getString("mobhunting.killstreak.activated", "multiplier",
-											String.format("%.1f", multiplier)));
-					break;
-				case 3:
-					Messages.playerBossbarMessage(player,
-							ChatColor.BLUE + Messages.getString("mobhunting.killstreak.level.3") + " " + ChatColor.GRAY
-									+ Messages.getString("mobhunting.killstreak.activated", "multiplier",
-											String.format("%.1f", multiplier)));
-					break;
-				default:
-					Messages.playerBossbarMessage(player,
-							ChatColor.BLUE + Messages.getString("mobhunting.killstreak.level.4") + " " + ChatColor.GRAY
-									+ Messages.getString("mobhunting.killstreak.activated", "multiplier",
-											String.format("%.1f", multiplier)));
-					break;
-				}
 
+				messages.playerBossbarMessage(player,
+						ChatColor.BLUE + messages.getString("mobhunting.killstreak.level."+getKillstreakLevel()) + " " + ChatColor.GRAY
+								+ messages.getString("mobhunting.killstreak.activated", "multiplier",
+								String.format("%.1f", multiplier)));
 			}
 		}
 
@@ -316,7 +297,7 @@ public class HuntData{
 		if (!player.hasMetadata(HUNTDATA)) {
 			putHuntDataToPlayer(player);
 		} else {
-			HuntData data = new HuntData();
+			HuntData data = new HuntData(plugin);
 			List<MetadataValue> md = player.getMetadata(HUNTDATA);
 			for (MetadataValue mdv : md) {
 				if (mdv.value() instanceof HuntData) {
@@ -329,7 +310,7 @@ public class HuntData{
 	}
 
 	public void putHuntDataToPlayer(Player player) {
-		player.setMetadata(HUNTDATA, new FixedMetadataValue(MobHunting.getInstance(), this));
+		player.setMetadata(HUNTDATA, new FixedMetadataValue(plugin, this));
 	}
 
 }

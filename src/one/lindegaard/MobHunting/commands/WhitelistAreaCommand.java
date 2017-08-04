@@ -1,20 +1,31 @@
 package one.lindegaard.MobHunting.commands;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
+import one.lindegaard.MobHunting.ConfigManager;
+import one.lindegaard.MobHunting.Messages;
+import one.lindegaard.MobHunting.compatibility.ProtocolLibHelper;
+import one.lindegaard.MobHunting.grinding.Area;
+import one.lindegaard.MobHunting.grinding.GrindingManager;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import one.lindegaard.MobHunting.Messages;
-import one.lindegaard.MobHunting.MobHunting;
-import one.lindegaard.MobHunting.compatibility.ProtocolLibHelper;
-import one.lindegaard.MobHunting.grinding.Area;
+import java.util.ArrayList;
+import java.util.List;
 
 public class WhitelistAreaCommand implements ICommand {
+
+	private Messages messages;
+	private GrindingManager grindingManager;
+	private ConfigManager configManager;
+	private ProtocolLibHelper protocolLibHelper;
+
+	public WhitelistAreaCommand(Messages messages, GrindingManager grindingManager, ConfigManager configManager, ProtocolLibHelper protocolLibHelper) {
+		this.messages = messages;
+        this.grindingManager = grindingManager;
+        this.configManager = configManager;
+        this.protocolLibHelper = protocolLibHelper;
+    }
 
 	@Override
 	public String getName() {
@@ -39,7 +50,7 @@ public class WhitelistAreaCommand implements ICommand {
 
 	@Override
 	public String getDescription() {
-		return Messages.getString("mobhunting.commands.whitelistarea.description");
+		return messages.getString("mobhunting.commands.whitelistarea.description");
 	}
 
 	@Override
@@ -57,24 +68,24 @@ public class WhitelistAreaCommand implements ICommand {
 		Location loc = ((Player) sender).getLocation();
 
 		if (args.length == 0) {
-			if (MobHunting.getGrindingManager().isWhitelisted(loc)) {
+			if (grindingManager.isWhitelisted(loc)) {
 				sender.sendMessage(
-						ChatColor.GREEN + Messages.getString("mobhunting.commands.whitelistarea.iswhitelisted"));
-				Area area = MobHunting.getGrindingManager().getWhitelistArea(loc);
-				ProtocolLibHelper.showGrindingArea((Player) sender, area, loc);
+						ChatColor.GREEN + messages.getString("mobhunting.commands.whitelistarea.iswhitelisted"));
+				Area area = grindingManager.getWhitelistArea(loc);
+                protocolLibHelper.showGrindingArea((Player) sender, area, loc);
 			} else
 				sender.sendMessage(
-						ChatColor.RED + Messages.getString("mobhunting.commands.whitelistarea.notwhitelisted"));
+						ChatColor.RED + messages.getString("mobhunting.commands.whitelistarea.notwhitelisted"));
 		} else if (args.length == 1) {
 			if (args[0].equalsIgnoreCase("remove")) {
-				MobHunting.getGrindingManager().unWhitelistArea(loc);
+                grindingManager.unWhitelistArea(loc);
 				sender.sendMessage(
-						ChatColor.GREEN + Messages.getString("mobhunting.commands.whitelistarea.remove.done"));
+						ChatColor.GREEN + messages.getString("mobhunting.commands.whitelistarea.remove.done"));
 			} else if (args[0].equalsIgnoreCase("add")) {
-				Area area = new Area(loc, MobHunting.getConfigManager().grindingDetectionRange, 0);
-				MobHunting.getGrindingManager().whitelistArea(area);
-				sender.sendMessage(ChatColor.GREEN + Messages.getString("mobhunting.commands.whitelistarea.done"));
-				ProtocolLibHelper.showGrindingArea((Player) sender, area, loc);
+				Area area = new Area(loc, configManager.grindingDetectionRange, 0);
+                grindingManager.whitelistArea(area);
+				sender.sendMessage(ChatColor.GREEN + messages.getString("mobhunting.commands.whitelistarea.done"));
+                protocolLibHelper.showGrindingArea((Player) sender, area, loc);
 			} else
 				return false;
 		} else
@@ -97,12 +108,7 @@ public class WhitelistAreaCommand implements ICommand {
 		if (!args[args.length - 1].trim().isEmpty()) {
 			String match = args[args.length - 1].trim().toLowerCase();
 
-			Iterator<String> it = items.iterator();
-			while (it.hasNext()) {
-				String name = it.next();
-				if (!name.toLowerCase().startsWith(match))
-					it.remove();
-			}
+            items.removeIf(name -> !name.toLowerCase().startsWith(match));
 		}
 		return items;
 	}

@@ -1,21 +1,15 @@
 package one.lindegaard.MobHunting.leaderboard;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import com.google.common.collect.HashMultimap;
+import one.lindegaard.MobHunting.ConfigManager;
+import one.lindegaard.MobHunting.Messages;
+import one.lindegaard.MobHunting.MobHunting;
+import one.lindegaard.MobHunting.StatType;
+import one.lindegaard.MobHunting.rewards.RewardManager;
+import one.lindegaard.MobHunting.storage.DataStoreManager;
+import one.lindegaard.MobHunting.storage.StatStore;
+import one.lindegaard.MobHunting.storage.TimePeriod;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
@@ -36,13 +30,9 @@ import org.bukkit.event.world.WorldLoadEvent;
 import org.bukkit.event.world.WorldUnloadEvent;
 import org.bukkit.scheduler.BukkitTask;
 
-import com.google.common.collect.HashMultimap;
-
-import one.lindegaard.MobHunting.Messages;
-import one.lindegaard.MobHunting.MobHunting;
-import one.lindegaard.MobHunting.StatType;
-import one.lindegaard.MobHunting.storage.StatStore;
-import one.lindegaard.MobHunting.storage.TimePeriod;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
 
 public class LeaderboardManager implements Listener {
 
@@ -51,12 +41,23 @@ public class LeaderboardManager implements Listener {
 	private HashMap<String, LegacyLeaderboard> mLegacyNameMap = new HashMap<String, LegacyLeaderboard>();
 	private BukkitTask mUpdater = null;
 
+	private MobHunting plugin;
+	private ConfigManager configManager;
+	private RewardManager rewardManager;
+	private DataStoreManager dataStoreManager;
+	private Messages messages;
+
 	public LeaderboardManager(MobHunting instance) {
+		this.plugin=instance;
+		this.configManager=plugin.getConfigManager();
+		this.rewardManager=plugin.getRewardManager();
+		this.dataStoreManager=plugin.getDataStoreManager();
+		this.messages=plugin.getMessages();
 		initialize();
 	}
 
 	private void initialize() {
-		int leaderboardUpdatePeriod = MobHunting.getConfigManager().leaderboardUpdatePeriod;
+		int leaderboardUpdatePeriod = configManager.leaderboardUpdatePeriod;
 		if (leaderboardUpdatePeriod < 1200) {
 			leaderboardUpdatePeriod = 1200;
 			Bukkit.getConsoleSender().sendMessage(ChatColor.RED
@@ -69,19 +70,21 @@ public class LeaderboardManager implements Listener {
 		for (World world : Bukkit.getWorlds())
 			loadWorld(world);
 
-		Bukkit.getPluginManager().registerEvents(this, MobHunting.getInstance());
+		Bukkit.getPluginManager().registerEvents(this, plugin);
 	}
 
-	private class Updater implements Runnable {
-		@Override
-		public void run() {
-			for (LegacyLeaderboard board : mLegacyLeaderboards)
-				board.updateBoard();
+	// *******************************************************************
+	// LEADERBOARDS
+	// *******************************************************************
+	public void createLeaderboard(Location location, BlockFace facing, StatType[] type, TimePeriod[] period,
+			boolean horizontal, int width, int height) throws IllegalArgumentException {
+		WorldLeaderboard board = new WorldLeaderboard(location, facing, width, height, horizontal, type, period, rewardManager, dataStoreManager);
+		if (!board.isSpaceAvailable())
+			throw new IllegalArgumentException("There is not enough room for the signs.");
 
-			for (WorldLeaderboard board : mLeaderboards.values())
-				board.update();
-			Messages.debug("Refreshed %s leaderboards.", mLegacyLeaderboards.size() + mLeaderboards.size());
-		}
+		mLeaderboards.put(location.getWorld(), board);
+		board.update();
+		saveWorld(location.getWorld());
 	}
 
 	public LegacyLeaderboard getLeaderboard(String id) {
@@ -93,17 +96,14 @@ public class LeaderboardManager implements Listener {
 	}
 
 	// *******************************************************************
-	// LEADERBOARDS
+	// LEGACYLEADERBOARDS
 	// *******************************************************************
-	public void createLeaderboard(Location location, BlockFace facing, StatType[] type, TimePeriod[] period,
-			boolean horizontal, int width, int height) throws IllegalArgumentException {
-		WorldLeaderboard board = new WorldLeaderboard(location, facing, width, height, horizontal, type, period, rewardManager);
-		if (!board.isSpaceAvailable())
-			throw new IllegalArgumentException("There is not enough room for the signs.");
+	public void deleteLegacyLeaderboard(String id) throws IllegalArgumentException {
+		if (!mLegacyNameMap.containsKey(id.toLowerCase()))
+			throw new IllegalArgumentException(messages.getString("leaderboard.notexists", "leaderboard", id));
 
-		mLeaderboards.put(location.getWorld(), board);
-		board.update();
-		saveWorld(location.getWorld());
+		mLegacyLeaderboards.remove(mLegacyNameMap.remove(id.toLowerCase()));
+		saveLegacyBoard();
 	}
 
 	public WorldLeaderboard getLeaderboardAt(Location location) {
@@ -119,15 +119,36 @@ public class LeaderboardManager implements Listener {
 		return mLeaderboards;
 	}
 
-	// *******************************************************************
-	// LEGACYLEADERBOARDS
-	// *******************************************************************
-	public void deleteLegacyLeaderboard(String id) throws IllegalArgumentException {
-		if (!mLegacyNameMap.containsKey(id.toLowerCase()))
-			throw new IllegalArgumentException(Messages.getString("leaderboard.notexists", "leaderboard", id));
+	@SuppressWarnings("unchecked")
+	private void loadLegacy() {
+		try {
+			File file = new File(MobHunting.getInstance().getDataFolder(), "boards.yml");
 
-		mLegacyLeaderboards.remove(mLegacyNameMap.remove(id.toLowerCase()));
-		saveLegacyBoard();
+			if (!file.exists())
+				return;
+
+			YamlConfiguration config = new YamlConfiguration();
+			config.load(file);
+
+			List<Object> boards = (List<Object>) config.getList("boards");
+
+			if (boards == null)
+				return;
+
+			mLegacyLeaderboards.clear();
+
+			for (Object board : boards) {
+				if (!(board instanceof Map))
+					continue;
+
+				LegacyLeaderboard leaderboard = new LegacyLeaderboard(dataStoreManager);
+				leaderboard.read((Map<String, Object>) board);
+				mLegacyLeaderboards.add(leaderboard);
+				mLegacyNameMap.put(leaderboard.getId(), leaderboard);
+			}
+		} catch (IOException | InvalidConfigurationException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public Set<LegacyLeaderboard> getAllLegacyBoards() {
@@ -154,40 +175,6 @@ public class LeaderboardManager implements Listener {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
-	private void loadLegacy() {
-		try {
-			File file = new File(MobHunting.getInstance().getDataFolder(), "boards.yml");
-
-			if (!file.exists())
-				return;
-
-			YamlConfiguration config = new YamlConfiguration();
-			config.load(file);
-
-			List<Object> boards = (List<Object>) config.getList("boards");
-
-			if (boards == null)
-				return;
-
-			mLegacyLeaderboards.clear();
-
-			for (Object board : boards) {
-				if (!(board instanceof Map))
-					continue;
-
-				LegacyLeaderboard leaderboard = new LegacyLeaderboard();
-				leaderboard.read((Map<String, Object>) board);
-				mLegacyLeaderboards.add(leaderboard);
-				mLegacyNameMap.put(leaderboard.getId(), leaderboard);
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (InvalidConfigurationException e) {
-			e.printStackTrace();
-		}
-	}
-
 	// *******************************************************************
 	// WORLDLEADERBOARDS
 	// *******************************************************************
@@ -202,7 +189,7 @@ public class LeaderboardManager implements Listener {
 		} catch (IOException | InvalidConfigurationException e) {
 			Bukkit.getConsoleSender().sendMessage(
 					ChatColor.RED + "Could not read world leaderboard file: boards-" + world.getName() + ".yml");
-			if (MobHunting.getConfigManager().killDebug)
+			if (configManager.killDebug)
 				e.printStackTrace();
 		}
 
@@ -210,7 +197,7 @@ public class LeaderboardManager implements Listener {
 		while (keys.hasNext()) {
 			String key = keys.next();
 			ConfigurationSection section = config.getConfigurationSection(key);
-			WorldLeaderboard board = new WorldLeaderboard(rewardManager);
+			WorldLeaderboard board = new WorldLeaderboard(rewardManager, dataStoreManager);
 			try {
 				board.read(section);
 				board.update();
@@ -224,7 +211,7 @@ public class LeaderboardManager implements Listener {
 		}
 
 		if (mLeaderboards.size() > 0)
-			Messages.debug("%s Leaderboards in '%s' loaded from file: %s!", mLeaderboards.size(), world.getName(),
+			messages.debug("%s Leaderboards in '%s' loaded from file: %s!", mLeaderboards.size(), world.getName(),
 					MobHunting.getInstance().getDataFolder(), "boards-" + world.getName() + ".yml");
 
 	}
@@ -240,13 +227,31 @@ public class LeaderboardManager implements Listener {
 			ConfigurationSection section = config.createSection(String.valueOf(i++));
 			board.save(section);
 		}
-		Messages.debug("Leaderboards saved to file: %s!", MobHunting.getInstance().getDataFolder(),
+		messages.debug("Leaderboards saved to file: %s!", MobHunting.getInstance().getDataFolder(),
 				"boards-" + world.getName() + ".yml");
 
 		try {
 			config.save(file);
 		} catch (IOException e) {
 			e.printStackTrace();
+		}
+	}
+
+	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+	private void onBlockBreakFinal(BlockBreakEvent event) {
+		Block block = event.getBlock();
+		if (block.getType() != Material.WALL_SIGN || !event.getPlayer().hasPermission("mobhunting.leaderboard"))
+			return;
+
+		// TODO: break does not remove the signs??????
+		for (WorldLeaderboard board : mLeaderboards.get(block.getWorld())) {
+			if (block.getLocation().equals(board.getLocation())) {
+				board.removeSigns();
+				mLeaderboards.remove(block.getWorld(), board);
+				saveWorld(board.getWorld());
+                messages.debug("Leaderboard removed: %s", block.getLocation().toString());
+				return;
+			}
 		}
 	}
 
@@ -352,21 +357,15 @@ public class LeaderboardManager implements Listener {
 		}
 	}
 
-	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-	private void onBlockBreakFinal(BlockBreakEvent event) {
-		Block block = event.getBlock();
-		if (block.getType() != Material.WALL_SIGN || !event.getPlayer().hasPermission("mobhunting.leaderboard"))
-			return;
+	private class Updater implements Runnable {
+		@Override
+		public void run() {
+			for (LegacyLeaderboard board : mLegacyLeaderboards)
+				board.updateBoard();
 
-		// TODO: break does not remove the signs??????
-		for (WorldLeaderboard board : mLeaderboards.get(block.getWorld())) {
-			if (block.getLocation().equals(board.getLocation())) {
-				board.removeSigns();
-				mLeaderboards.remove(block.getWorld(), board);
-				saveWorld(board.getWorld());
-				Messages.debug("Leaderboard removed: %s", block.getLocation().toString());
-				return;
-			}
+			for (WorldLeaderboard board : mLeaderboards.values())
+				board.update();
+			messages.debug("Refreshed %s leaderboards.", mLegacyLeaderboards.size() + mLeaderboards.size());
 		}
 	}
 

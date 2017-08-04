@@ -1,20 +1,15 @@
 package one.lindegaard.MobHunting.npc;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.npc.NPC;
 import one.lindegaard.MobHunting.Messages;
 import one.lindegaard.MobHunting.MobHunting;
 import one.lindegaard.MobHunting.StatType;
+import one.lindegaard.MobHunting.storage.DataStoreManager;
 import one.lindegaard.MobHunting.storage.IDataCallback;
 import one.lindegaard.MobHunting.storage.StatStore;
 import one.lindegaard.MobHunting.storage.TimePeriod;
 import one.lindegaard.MobHunting.util.Misc;
-
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
@@ -23,16 +18,26 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.metadata.FixedMetadataValue;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+
 public class MasterMobHunter implements IDataCallback<List<StatStore>> {
 
 	private NPC npc;
 	private List<StatStore> stats;
+	private MasterMobHunterSign masterMobHunterSign;
+	private Messages messages;
+	private DataStoreManager iDataStore;
 
-	public MasterMobHunter() {
+	public MasterMobHunter(MasterMobHunterSign masterMobHunterSign) {
+		this.masterMobHunterSign = masterMobHunterSign;
 	}
 
-	public MasterMobHunter(int id, StatType statType, TimePeriod period, int numberOfKills, int rank) {
+	public MasterMobHunter(int id, StatType statType, MasterMobHunterSign masterMobHunterSign, TimePeriod period, int numberOfKills, int rank) {
 		npc = CitizensAPI.getNPCRegistry().getById(id);
+		this.masterMobHunterSign = masterMobHunterSign;
 		npc.getTrait(MasterMobHunterTrait.class).stattype = statType.getDBColumn();
 		npc.getTrait(MasterMobHunterTrait.class).period = period.getDBColumn();
 		npc.getTrait(MasterMobHunterTrait.class).rank = rank;
@@ -40,8 +45,9 @@ public class MasterMobHunter implements IDataCallback<List<StatStore>> {
 		npc.getTrait(MasterMobHunterTrait.class).signLocations = new ArrayList<Location>();
 	}
 
-	public MasterMobHunter(NPC npc) {
+	public MasterMobHunter(NPC npc, MasterMobHunterSign masterMobHunterSign) {
 		this.npc = npc;
+		this.masterMobHunterSign = masterMobHunterSign;
 		if (StatType.fromColumnName(npc.getTrait(MasterMobHunterTrait.class).stattype) == null) {
 			MobHunting.getInstance().getLogger().warning("NPC ID=" + npc.getId()
 					+ " has an invalid StatType. Resetting to " + StatType.KillsTotal.getDBColumn());
@@ -102,7 +108,7 @@ public class MasterMobHunter implements IDataCallback<List<StatStore>> {
 
 	public void putSignLocation(Location location) {
 		if (!npc.getTrait(MasterMobHunterTrait.class).signLocations.contains(location)) {
-			Messages.debug("put signLocation into npc=%s", npc.getId());
+			messages.debug("put signLocation into npc=%s", npc.getId());
 			npc.getTrait(MasterMobHunterTrait.class).signLocations.add(location);
 		}
 	}
@@ -119,7 +125,7 @@ public class MasterMobHunter implements IDataCallback<List<StatStore>> {
 	}
 
 	public void setHome(Location location) {
-		Messages.debug("Set NPC ID=%s home = %s", npc.getId(), location);
+		messages.debug("Set NPC ID=%s home = %s", npc.getId(), location);
 		npc.getTrait(MasterMobHunterTrait.class).home = location;
 	}
 
@@ -131,7 +137,7 @@ public class MasterMobHunter implements IDataCallback<List<StatStore>> {
 	// RequestStats / DataCallBack
 	// ***********************************************************************************
 	public void update() {
-		MobHunting.getDataStoreManager().requestStats(getStatType(), getPeriod(), 25, this);
+		iDataStore.requestStats(getStatType(), getPeriod(), 25, this);
 	}
 
 	public List<StatStore> getCurrentStats() {
@@ -179,14 +185,14 @@ public class MasterMobHunter implements IDataCallback<List<StatStore>> {
 				Location loc = itr.next();
 				Block sb = loc.getBlock();
 				if (isLoaded(sb)) {
-					if (MasterMobHunterSign.isMHSign(sb)) {
+					if (masterMobHunterSign.isMHSign(sb)) {
 						org.bukkit.block.Sign s = (org.bukkit.block.Sign) sb.getState();
-						if (MasterMobHunterSign.isMHSign(s.getLine(0))) {
+						if (masterMobHunterSign.isMHSign(s.getLine(0))) {
 							sb.setMetadata(MasterMobHunterSign.MH_SIGN,
 									new FixedMetadataValue(MobHunting.getInstance(), s.getLine(0)));
 							s.setMetadata(MasterMobHunterSign.MH_SIGN,
 									new FixedMetadataValue(MobHunting.getInstance(), s.getLine(0)));
-							int id = MasterMobHunterSign.getNPCIdOnSign(sb);
+							int id = masterMobHunterSign.getNPCIdOnSign(sb);
 							NPC npc = CitizensAPI.getNPCRegistry().getById(id);
 							if (npc != null) {
 								if (MasterMobHunterManager.isMasterMobHunter(npc)) {
@@ -201,12 +207,12 @@ public class MasterMobHunter implements IDataCallback<List<StatStore>> {
 						s.setLine(2, (Misc.trimSignText(getPeriod().translateNameFriendly())));
 						s.setLine(3, (Misc.trimSignText(getNumberOfKills() + " " + getStatType().translateName())));
 						s.update();
-						if (MasterMobHunterSign.isMHSign(sb)) {
+						if (masterMobHunterSign.isMHSign(sb)) {
 							OfflinePlayer player = Bukkit.getPlayer(npc.getName());
 							if (player != null && player.isOnline())
-								MasterMobHunterSign.setPower(sb, MasterMobHunterSign.POWER_FROM_SIGN);
+								masterMobHunterSign.setPower(sb, MasterMobHunterSign.POWER_FROM_SIGN);
 							else
-								MasterMobHunterSign.removePower(sb);
+								masterMobHunterSign.removePower(sb);
 						}
 					} 
 				}

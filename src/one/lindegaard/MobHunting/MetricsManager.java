@@ -1,51 +1,15 @@
 package one.lindegaard.MobHunting;
 
-import java.io.IOException;
-import java.net.URL;
-import java.util.HashMap;
-
+import one.lindegaard.MobHunting.compatibility.*;
+import one.lindegaard.MobHunting.leaderboard.LeaderboardManager;
+import one.lindegaard.MobHunting.npc.MasterMobHunterManager;
 import org.bukkit.Bukkit;
 import org.mcstats_mh.Metrics;
 import org.mcstats_mh.Metrics.Graph;
 
-import one.lindegaard.MobHunting.compatibility.ActionAnnouncerCompat;
-import one.lindegaard.MobHunting.compatibility.ActionBarAPICompat;
-import one.lindegaard.MobHunting.compatibility.ActionbarCompat;
-import one.lindegaard.MobHunting.compatibility.BarAPICompat;
-import one.lindegaard.MobHunting.compatibility.BattleArenaCompat;
-import one.lindegaard.MobHunting.compatibility.BossBarAPICompat;
-import one.lindegaard.MobHunting.compatibility.CitizensCompat;
-import one.lindegaard.MobHunting.compatibility.ConquestiaMobsCompat;
-import one.lindegaard.MobHunting.compatibility.CrackShotCompat;
-import one.lindegaard.MobHunting.compatibility.CustomMobsCompat;
-import one.lindegaard.MobHunting.compatibility.DisguiseCraftCompat;
-import one.lindegaard.MobHunting.compatibility.EssentialsCompat;
-import one.lindegaard.MobHunting.compatibility.ExtraHardModeCompat;
-import one.lindegaard.MobHunting.compatibility.FactionsCompat;
-import one.lindegaard.MobHunting.compatibility.GringottsCompat;
-import one.lindegaard.MobHunting.compatibility.IDisguiseCompat;
-import one.lindegaard.MobHunting.compatibility.InfernalMobsCompat;
-import one.lindegaard.MobHunting.compatibility.LibsDisguisesCompat;
-import one.lindegaard.MobHunting.compatibility.MinigamesCompat;
-import one.lindegaard.MobHunting.compatibility.MinigamesLibCompat;
-import one.lindegaard.MobHunting.compatibility.MobArenaCompat;
-import one.lindegaard.MobHunting.compatibility.MobStackerCompat;
-import one.lindegaard.MobHunting.compatibility.MyPetCompat;
-import one.lindegaard.MobHunting.compatibility.MysteriousHalloweenCompat;
-import one.lindegaard.MobHunting.compatibility.MythicMobsCompat;
-import one.lindegaard.MobHunting.compatibility.PVPArenaCompat;
-import one.lindegaard.MobHunting.compatibility.ProtocolLibCompat;
-import one.lindegaard.MobHunting.compatibility.ResidenceCompat;
-import one.lindegaard.MobHunting.compatibility.SmartGiantsCompat;
-import one.lindegaard.MobHunting.compatibility.StackMobCompat;
-import one.lindegaard.MobHunting.compatibility.TARDISWeepingAngelsCompat;
-import one.lindegaard.MobHunting.compatibility.TitleAPICompat;
-import one.lindegaard.MobHunting.compatibility.TitleManagerCompat;
-import one.lindegaard.MobHunting.compatibility.TownyCompat;
-import one.lindegaard.MobHunting.compatibility.VanishNoPacketCompat;
-import one.lindegaard.MobHunting.compatibility.WorldEditCompat;
-import one.lindegaard.MobHunting.compatibility.WorldGuardCompat;
-import one.lindegaard.MobHunting.npc.MasterMobHunterManager;
+import java.io.IOException;
+import java.net.URL;
+import java.util.HashMap;
 
 public class MetricsManager {
 
@@ -53,31 +17,64 @@ public class MetricsManager {
 	private Metrics metrics;
 	private Graph automaticUpdatesGraph, databaseGraph, integrationsGraph, titleManagerGraph, usageGraph,
 			mobPluginIntegrationsGraph, protectionPluginsGraph, minigamesGraph, disguiseGraph;
-	private MobHunting instance;
+	private MobHunting plugin;
 
 	private org.bstats.Metrics bStatsMetrics;
 
 	private ProtocolLibCompat protocolLibCompat;
+	private ConfigManager configManager;
+	private LeaderboardManager leaderboardManager;
 
-	public MetricsManager(MobHunting instance, ProtocolLibCompat protocolLibCompat) {
-		this.instance = instance;
-		this.protocolLibCompat = protocolLibCompat;
+	private IDisguiseCompat iDisguiseCompat;
+	private FactionsCompat factionsCompat;
+    private Messages messages;
+    private BattleArenaCompat battleArenaCompat;
+    private GringottsCompat gringottsCompat;
+    private CustomMobsCompat customMobsCompat;
+    private TitleAPICompat titleAPICompat;
+    private TitleManagerCompat titleManagerCompat;
+    private ActionBarAPICompat actionBarAPICompat;
+    private MyPetCompat myPetCompat;
+    private CitizensCompat citizensCompat;
+    private TARDISWeepingAngelsCompat tardisWeepingAngelsCompat;
+    private MythicMobsCompat mythicMobsCompat;
+    private MysteriousHalloweenCompat mysteriousHalloweenCompat;
+
+    public MetricsManager(MobHunting instance) {
+		this.plugin = instance;
+		this.protocolLibCompat = instance.getmProtocolLibCompat();
+		this.configManager=instance.getConfigManager();
+		this.leaderboardManager=instance.getLeaderboardManager();
+		this.iDisguiseCompat=instance.getiDisguiseCompat();
+		this.factionsCompat=instance.getFactionsCompat();
+		this.messages=instance.getMessages();
+		this.battleArenaCompat=instance.getBattleArenaCompat();
+		this.gringottsCompat=instance.getGringottsCompat();
+		this.customMobsCompat=instance.getCustomMobsCompat();
+		this.titleAPICompat=instance.getTitleAPICompat();
+		this.titleManagerCompat=instance.getTitleManagerCompat();
+		this.actionBarAPICompat=instance.getActionBarAPICompat();
+		this.myPetCompat=plugin.getMyPetCompat();
+		this.citizensCompat=plugin.getCitizensCompat();
+		this.mythicMobsCompat=plugin.getMythicMobsCompat();
+		this.tardisWeepingAngelsCompat=plugin.getTardisWeepingAngelsCompat();
+		this.mysteriousHalloweenCompat = plugin.getMyteriousHalloweenCompat();
 	}
 
 	public void startBStatsMetrics() {
-		bStatsMetrics = new org.bstats.Metrics(instance);
+		bStatsMetrics = new org.bstats.Metrics(plugin);
 
 		bStatsMetrics.addCustomChart(new org.bstats.Metrics.SimplePie("database_used_for_mobhunting") {
 			@Override
 			public String getValue() {
-				return MobHunting.getConfigManager().databaseType;
+				return configManager.databaseType;
 			}
 		});
 
 		bStatsMetrics.addCustomChart(new org.bstats.Metrics.SimplePie("language") {
 			@Override
 			public String getValue() {
-				return MobHunting.getConfigManager().language;
+				return configManager.language;
 			}
 		});
 
@@ -85,7 +82,7 @@ public class MetricsManager {
 			@Override
 			public HashMap<String, Integer> getValues(HashMap<String, Integer> valueMap) {
 				valueMap.put("WorldGuard", WorldGuardCompat.isSupported() ? 1 : 0);
-				valueMap.put("Factions", FactionsCompat.isSupported() ? 1 : 0);
+				valueMap.put("Factions", factionsCompat.isSupported() ? 1 : 0);
 				valueMap.put("Towny", TownyCompat.isSupported() ? 1 : 0);
 				valueMap.put("Residence", ResidenceCompat.isSupported() ? 1 : 0);
 				return valueMap;
@@ -99,7 +96,7 @@ public class MetricsManager {
 				valueMap.put("Minigames", MinigamesCompat.isSupported() ? 1 : 0);
 				valueMap.put("MinigamesLib", MinigamesLibCompat.isSupported() ? 1 : 0);
 				valueMap.put("PVPArena", PVPArenaCompat.isSupported() ? 1 : 0);
-				valueMap.put("BattleArena", BattleArenaCompat.isSupported() ? 1 : 0);
+				valueMap.put("BattleArena", battleArenaCompat.isSupported() ? 1 : 0);
 				return valueMap;
 			}
 		});
@@ -116,7 +113,7 @@ public class MetricsManager {
 				try {
 					@SuppressWarnings({ "rawtypes", "unused" })
 					Class cls = Class.forName("de.robingrether.idisguise.disguise.DisguiseType");
-					valueMap.put("iDisguise", IDisguiseCompat.isSupported() ? 1 : 0);
+					valueMap.put("iDisguise", iDisguiseCompat.isSupported() ? 1 : 0);
 				} catch (ClassNotFoundException e) {
 				}
 				try {
@@ -134,9 +131,9 @@ public class MetricsManager {
 		bStatsMetrics.addCustomChart(new org.bstats.Metrics.SimpleBarChart("other_integrations") {
 			@Override
 			public HashMap<String, Integer> getValues(HashMap<String, Integer> valueMap) {
-				valueMap.put("Citizens", CitizensCompat.isSupported() ? 1 : 0);
-				valueMap.put("Gringotts", GringottsCompat.isSupported() ? 1 : 0);
-				valueMap.put("MyPet", MyPetCompat.isSupported() ? 1 : 0);
+				valueMap.put("Citizens", citizensCompat.isSupported() ? 1 : 0);
+				valueMap.put("Gringotts", gringottsCompat.isSupported() ? 1 : 0);
+				valueMap.put("MyPet", myPetCompat.isSupported() ? 1 : 0);
 				valueMap.put("WorldEdit", WorldEditCompat.isSupported() ? 1 : 0);
 				valueMap.put("ProtocolLib", protocolLibCompat.isSupported() ? 1 : 0);
 				valueMap.put("ExtraHardMode", ExtraHardModeCompat.isSupported() ? 1 : 0);
@@ -148,13 +145,13 @@ public class MetricsManager {
 		bStatsMetrics.addCustomChart(new org.bstats.Metrics.SimpleBarChart("special_mobs") {
 			@Override
 			public HashMap<String, Integer> getValues(HashMap<String, Integer> valueMap) {
-				valueMap.put("MythicMobs", MythicMobsCompat.isSupported() ? 1 : 0);
-				valueMap.put("TARDISWeepingAngels", TARDISWeepingAngelsCompat.isSupported() ? 1 : 0);
+				valueMap.put("MythicMobs", mythicMobsCompat.isSupported() ? 1 : 0);
+				valueMap.put("TARDISWeepingAngels", tardisWeepingAngelsCompat.isSupported() ? 1 : 0);
 				valueMap.put("MobStacker", MobStackerCompat.isSupported() ? 1 : 0);
-				valueMap.put("CustomMobs", CustomMobsCompat.isSupported() ? 1 : 0);
+				valueMap.put("CustomMobs", customMobsCompat.isSupported() ? 1 : 0);
 				valueMap.put("ConquestiaMobs", ConquestiaMobsCompat.isSupported() ? 1 : 0);
 				valueMap.put("StackMob", StackMobCompat.isSupported() ? 1 : 0);
-				valueMap.put("MysteriousHalloween", MysteriousHalloweenCompat.isSupported() ? 1 : 0);
+				valueMap.put("MysteriousHalloween", mysteriousHalloweenCompat.isSupported() ? 1 : 0);
 				valueMap.put("SmartGiants", SmartGiantsCompat.isSupported() ? 1 : 0);
 				valueMap.put("InfernalMobs", InfernalMobsCompat.isSupported() ? 1 : 0);
 				return valueMap;
@@ -165,11 +162,11 @@ public class MetricsManager {
 			@Override
 			public HashMap<String, Integer> getValues(HashMap<String, Integer> valueMap) {
 				valueMap.put("BossBarAPI", BossBarAPICompat.isSupported() ? 1 : 0);
-				valueMap.put("TitleAPI", TitleAPICompat.isSupported() ? 1 : 0);
+				valueMap.put("TitleAPI", titleAPICompat.isSupported() ? 1 : 0);
 				valueMap.put("BarAPI", BarAPICompat.isSupported() ? 1 : 0);
-				valueMap.put("TitleManager", TitleManagerCompat.isSupported() ? 1 : 0);
+				valueMap.put("TitleManager", titleManagerCompat.isSupported() ? 1 : 0);
 				valueMap.put("ActionBar", ActionbarCompat.isSupported() ? 1 : 0);
-				valueMap.put("ActionBarAPI", ActionBarAPICompat.isSupported() ? 1 : 0);
+				valueMap.put("ActionBarAPI", actionBarAPICompat.isSupported() ? 1 : 0);
 				valueMap.put("ActionAnnouncer", ActionAnnouncerCompat.isSupported() ? 1 : 0);
 				return valueMap;
 			}
@@ -178,10 +175,10 @@ public class MetricsManager {
 		bStatsMetrics.addCustomChart(new org.bstats.Metrics.SimpleBarChart("mobhunting_usage") {
 			@Override
 			public HashMap<String, Integer> getValues(HashMap<String, Integer> valueMap) {
-				valueMap.put("Leaderboards", MobHunting.getLeaderboardManager().getWorldLeaderBoards().size());
+				valueMap.put("Leaderboards", leaderboardManager.getWorldLeaderBoards().size());
 				valueMap.put("MasterMobHunters", MasterMobHunterManager.getMasterMobHunterManager().size());
-				valueMap.put("PlayerBounties", MobHunting.getConfigManager().disablePlayerBounties ? 0
-						: MobHunting.getBountyManager().getAllBounties().size());
+				valueMap.put("PlayerBounties", configManager.disablePlayerBounties ? 0
+						: plugin.getBountyManager().getAllBounties().size());
 				return valueMap;
 			}
 		});
@@ -189,13 +186,13 @@ public class MetricsManager {
 
 	public void startMetrics() {
 		try {
-			metrics = new Metrics(instance);
+			metrics = new Metrics(plugin);
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
 
 		databaseGraph = metrics.createGraph("Database used for MobHunting");
-		if (MobHunting.getConfigManager().databaseType.equalsIgnoreCase("MySQL")) {
+		if (configManager.databaseType.equalsIgnoreCase("MySQL")) {
 			databaseGraph.addPlotter(new Metrics.Plotter("MySQL") {
 				@Override
 				public int getValue() {
@@ -203,7 +200,7 @@ public class MetricsManager {
 				}
 			});
 
-		} else if (MobHunting.getConfigManager().databaseType.equalsIgnoreCase("SQLite")) {
+		} else if (configManager.databaseType.equalsIgnoreCase("SQLite")) {
 			databaseGraph.addPlotter(new Metrics.Plotter("SQLite") {
 				@Override
 				public int getValue() {
@@ -211,7 +208,7 @@ public class MetricsManager {
 				}
 			});
 		} else {
-			databaseGraph.addPlotter(new Metrics.Plotter(MobHunting.getConfigManager().databaseType) {
+			databaseGraph.addPlotter(new Metrics.Plotter(configManager.databaseType) {
 				@Override
 				public int getValue() {
 					return 1;
@@ -223,7 +220,7 @@ public class MetricsManager {
 		integrationsGraph.addPlotter(new Metrics.Plotter("Citizens") {
 			@Override
 			public int getValue() {
-				return CitizensCompat.isSupported() ? 1 : 0;
+				return citizensCompat.isSupported() ? 1 : 0;
 			}
 		});
 		integrationsGraph.addPlotter(new Metrics.Plotter("Essentials") {
@@ -235,13 +232,13 @@ public class MetricsManager {
 		integrationsGraph.addPlotter(new Metrics.Plotter("Gringotts") {
 			@Override
 			public int getValue() {
-				return GringottsCompat.isSupported() ? 1 : 0;
+				return gringottsCompat.isSupported() ? 1 : 0;
 			}
 		});
 		integrationsGraph.addPlotter(new Metrics.Plotter("MyPet") {
 			@Override
 			public int getValue() {
-				return MyPetCompat.isSupported() ? 1 : 0;
+				return myPetCompat.isSupported() ? 1 : 0;
 			}
 		});
 		integrationsGraph.addPlotter(new Metrics.Plotter("WorldEdit") {
@@ -294,7 +291,7 @@ public class MetricsManager {
 		protectionPluginsGraph.addPlotter(new Metrics.Plotter("Factions") {
 			@Override
 			public int getValue() {
-				return FactionsCompat.isSupported() ? 1 : 0;
+				return factionsCompat.isSupported() ? 1 : 0;
 
 			}
 		});
@@ -342,7 +339,7 @@ public class MetricsManager {
 		minigamesGraph.addPlotter(new Metrics.Plotter("BattleArena") {
 			@Override
 			public int getValue() {
-				return BattleArenaCompat.isSupported() ? 1 : 0;
+				return battleArenaCompat.isSupported() ? 1 : 0;
 			}
 		});
 		metrics.addGraph(minigamesGraph);
@@ -351,13 +348,13 @@ public class MetricsManager {
 		mobPluginIntegrationsGraph.addPlotter(new Metrics.Plotter("MythicMobs") {
 			@Override
 			public int getValue() {
-				return MythicMobsCompat.isSupported() ? 1 : 0;
+				return mythicMobsCompat.isSupported() ? 1 : 0;
 			}
 		});
 		mobPluginIntegrationsGraph.addPlotter(new Metrics.Plotter("TARDISWeepingAngels") {
 			@Override
 			public int getValue() {
-				return TARDISWeepingAngelsCompat.isSupported() ? 1 : 0;
+				return tardisWeepingAngelsCompat.isSupported() ? 1 : 0;
 			}
 		});
 		mobPluginIntegrationsGraph.addPlotter(new Metrics.Plotter("MobStacker") {
@@ -369,7 +366,7 @@ public class MetricsManager {
 		mobPluginIntegrationsGraph.addPlotter(new Metrics.Plotter("CustomMobs") {
 			@Override
 			public int getValue() {
-				return CustomMobsCompat.isSupported() ? 1 : 0;
+				return customMobsCompat.isSupported() ? 1 : 0;
 			}
 		});
 		mobPluginIntegrationsGraph.addPlotter(new Metrics.Plotter("Conquestia Mobs") {
@@ -387,7 +384,7 @@ public class MetricsManager {
 		mobPluginIntegrationsGraph.addPlotter(new Metrics.Plotter("MysteriousHalloween") {
 			@Override
 			public int getValue() {
-				return MysteriousHalloweenCompat.isSupported() ? 1 : 0;
+				return mysteriousHalloweenCompat.isSupported() ? 1 : 0;
 			}
 		});
 		mobPluginIntegrationsGraph.addPlotter(new Metrics.Plotter("SmartGiants") {
@@ -423,7 +420,7 @@ public class MetricsManager {
 				try {
 					@SuppressWarnings({ "rawtypes", "unused" })
 					Class cls = Class.forName("de.robingrether.idisguise.disguise.DisguiseType");
-					return IDisguiseCompat.isSupported() ? 1 : 0;
+					return iDisguiseCompat.isSupported() ? 1 : 0;
 				} catch (ClassNotFoundException e) {
 					return 0;
 				}
@@ -454,7 +451,7 @@ public class MetricsManager {
 		titleManagerGraph.addPlotter(new Metrics.Plotter("TitleAPI") {
 			@Override
 			public int getValue() {
-				return TitleAPICompat.isSupported() ? 1 : 0;
+				return titleAPICompat.isSupported() ? 1 : 0;
 			}
 		});
 		titleManagerGraph.addPlotter(new Metrics.Plotter("BarAPI") {
@@ -466,7 +463,7 @@ public class MetricsManager {
 		titleManagerGraph.addPlotter(new Metrics.Plotter("TitleManager") {
 			@Override
 			public int getValue() {
-				return TitleManagerCompat.isSupported() ? 1 : 0;
+				return titleManagerCompat.isSupported() ? 1 : 0;
 			}
 		});
 		titleManagerGraph.addPlotter(new Metrics.Plotter("Actionbar") {
@@ -478,7 +475,7 @@ public class MetricsManager {
 		titleManagerGraph.addPlotter(new Metrics.Plotter("ActionBarAPI") {
 			@Override
 			public int getValue() {
-				return ActionBarAPICompat.isSupported() ? 1 : 0;
+				return actionBarAPICompat.isSupported() ? 1 : 0;
 			}
 		});
 		titleManagerGraph.addPlotter(new Metrics.Plotter("ActionAnnouncer") {
@@ -493,7 +490,7 @@ public class MetricsManager {
 		automaticUpdatesGraph.addPlotter(new Metrics.Plotter("Amount") {
 			@Override
 			public int getValue() {
-				return MobHunting.getConfigManager().autoupdate ? 1 : 0;
+				return configManager.autoupdate ? 1 : 0;
 			}
 		});
 		metrics.addGraph(automaticUpdatesGraph);
@@ -502,7 +499,7 @@ public class MetricsManager {
 		usageGraph.addPlotter(new Metrics.Plotter("# of Leaderboards") {
 			@Override
 			public int getValue() {
-				return MobHunting.getLeaderboardManager().getWorldLeaderBoards().size();
+				return leaderboardManager.getWorldLeaderBoards().size();
 			}
 		});
 		usageGraph.addPlotter(new Metrics.Plotter("# of MasterMobHunters") {
@@ -514,32 +511,30 @@ public class MetricsManager {
 		usageGraph.addPlotter(new Metrics.Plotter("# of Bounties") {
 			@Override
 			public int getValue() {
-				if (MobHunting.getConfigManager().disablePlayerBounties)
+				if (configManager.disablePlayerBounties)
 					return 0;
 				else
-					return MobHunting.getBountyManager().getAllBounties().size();
+					return plugin.getBountyManager().getAllBounties().size();
 			}
 		});
 		metrics.addGraph(usageGraph);
 		metrics.start();
-		Messages.debug("Metrics started");
-		Bukkit.getScheduler().runTaskTimerAsynchronously(MobHunting.getInstance(), new Runnable() {
-			public void run() {
-				try {
-					// make a URL to MCStats.org
-					URL url = new URL("http://mcstats.org");
-					if (HttpTools.isHomePageReachable(url)) {
-						metrics.enable();
-					} else {
-						metrics.disable();
-						Messages.debug("Http://mcstats.org seems to be down");
-					}
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+		messages.debug("Metrics started");
+		Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> {
+            try {
+                // make a URL to MCStats.org
+                URL url = new URL("http://mcstats.org");
+                if (HttpTools.isHomePageReachable(url)) {
+                    metrics.enable();
+                } else {
+                    metrics.disable();
+                    messages.debug("Http://mcstats.org seems to be down");
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
-			}
-		}, 100, 72000);
+        }, 100, 72000);
 
 	}
 }

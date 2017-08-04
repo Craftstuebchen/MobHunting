@@ -1,16 +1,19 @@
 package one.lindegaard.MobHunting.modifier;
 
+import one.lindegaard.MobHunting.ConfigManager;
+import one.lindegaard.MobHunting.DamageInformation;
+import one.lindegaard.MobHunting.HuntData;
+import one.lindegaard.MobHunting.Messages;
+import one.lindegaard.MobHunting.compatibility.ConquestiaMobsCompat;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
-import one.lindegaard.MobHunting.DamageInformation;
-import one.lindegaard.MobHunting.HuntData;
-import one.lindegaard.MobHunting.Messages;
-import one.lindegaard.MobHunting.MobHunting;
-import one.lindegaard.MobHunting.compatibility.ConquestiaMobsCompat;
+public class ConquestiaBonus extends IModifier {
 
-public class ConquestiaBonus implements IModifier {
+	public ConquestiaBonus(ConfigManager configManager) {
+		super(configManager);
+	}
 
 	@Override
 	public String getName() {
@@ -21,8 +24,8 @@ public class ConquestiaBonus implements IModifier {
 	public double getMultiplier(Entity deadEntity, Player killer, HuntData data, DamageInformation extraInfo,
 			EntityDamageByEntityEvent lastDamageCause) {
 		Messages.debug("ConquestiaMob total multiplier = %s", Math.pow(
-				MobHunting.getConfigManager().mulitiplierPerLevel, ConquestiaMobsCompat.getCqLevel(deadEntity)-1));
-		return Math.pow(MobHunting.getConfigManager().mulitiplierPerLevel,
+				configManager.mulitiplierPerLevel, ConquestiaMobsCompat.getCqLevel(deadEntity)-1));
+		return Math.pow(configManager.mulitiplierPerLevel,
 				ConquestiaMobsCompat.getCqLevel(deadEntity)-1);
 	}
 

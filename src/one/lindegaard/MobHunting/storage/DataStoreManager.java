@@ -1,15 +1,6 @@
 package one.lindegaard.MobHunting.storage;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.OfflinePlayer;
-
+import one.lindegaard.MobHunting.ConfigManager;
 import one.lindegaard.MobHunting.Messages;
 import one.lindegaard.MobHunting.MobHunting;
 import one.lindegaard.MobHunting.StatType;
@@ -17,16 +8,22 @@ import one.lindegaard.MobHunting.achievements.Achievement;
 import one.lindegaard.MobHunting.achievements.ProgressAchievement;
 import one.lindegaard.MobHunting.bounty.Bounty;
 import one.lindegaard.MobHunting.bounty.BountyStatus;
+import one.lindegaard.MobHunting.compatibility.CustomMobsCompat;
+import one.lindegaard.MobHunting.grinding.GrindingManager;
 import one.lindegaard.MobHunting.mobs.ExtendedMob;
 import one.lindegaard.MobHunting.mobs.MinecraftMob;
 import one.lindegaard.MobHunting.mobs.MobPlugin;
-import one.lindegaard.MobHunting.storage.asynch.AchievementRetrieverTask;
-import one.lindegaard.MobHunting.storage.asynch.IDataStoreTask;
-import one.lindegaard.MobHunting.storage.asynch.PlayerSettingsRetrieverTask;
-import one.lindegaard.MobHunting.storage.asynch.StatRetrieverTask;
-import one.lindegaard.MobHunting.storage.asynch.StoreTask;
+import one.lindegaard.MobHunting.storage.asynch.*;
 import one.lindegaard.MobHunting.storage.asynch.AchievementRetrieverTask.Mode;
-import one.lindegaard.MobHunting.storage.asynch.BountyRetrieverTask;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.OfflinePlayer;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class DataStoreManager {
 	// Accessed on multiple threads
@@ -42,10 +39,19 @@ public class DataStoreManager {
 	// Accessed only from retrieve thread
 	private TaskThread mTaskThread;
 
-	public DataStoreManager(IDataStore store) {
+	private ConfigManager configManager;
+	private GrindingManager grindingManager;
+	private Messages messages;
+	private CustomMobsCompat customMobsCompat;
+
+	public DataStoreManager(IDataStore store, ConfigManager configManager, GrindingManager grindingManager, Messages messages, CustomMobsCompat customMobsCompat) {
 		mStore = store;
+		this.configManager = configManager;
+        this.grindingManager = grindingManager;
+		this.messages = messages;
+		this.customMobsCompat = customMobsCompat;
 		mTaskThread = new TaskThread();
-		int savePeriod = MobHunting.getConfigManager().savePeriod;
+		int savePeriod = configManager.savePeriod;
 		if (savePeriod < 1200) {
 			savePeriod = 1200;
 			Bukkit.getConsoleSender().sendMessage(ChatColor.RED
@@ -69,7 +75,7 @@ public class DataStoreManager {
 
 			if (bonusMob)
 				mWaiting.add(new StatStore(StatType.fromMobType(
-						new ExtendedMob(MinecraftMob.BonusMob.ordinal(), MobPlugin.Minecraft, "BonusMob"), true), mob,
+						new ExtendedMob(MinecraftMob.BonusMob.ordinal(), MobPlugin.Minecraft, "BonusMob", customMobsCompat, messages, mythicMobsCompat, citizensCompat, tARDISWeepingAngelsCompat, mysteriousHalloweenCompat), true), mob,
 						player, 1, cash));
 		}
 	}
@@ -81,7 +87,7 @@ public class DataStoreManager {
 
 			if (bonusMob)
 				mWaiting.add(new StatStore(StatType.fromMobType(
-						new ExtendedMob(MinecraftMob.BonusMob.ordinal(), MobPlugin.Minecraft, "BonusMob"), false), mob,
+						new ExtendedMob(MinecraftMob.BonusMob.ordinal(), MobPlugin.Minecraft, "BonusMob", customMobsCompat, messages, mythicMobsCompat, citizensCompat, tARDISWeepingAngelsCompat, mysteriousHalloweenCompat), false), mob,
 						player, 1, cash));
 		}
 	}
@@ -92,7 +98,7 @@ public class DataStoreManager {
 
 			if (bonusMob)
 				mWaiting.add(new StatStore(StatType.fromMobType(
-						new ExtendedMob(MinecraftMob.BonusMob.ordinal(), MobPlugin.Minecraft, "BonusMob"), true), mob,
+						new ExtendedMob(MinecraftMob.BonusMob.ordinal(), MobPlugin.Minecraft, "BonusMob", customMobsCompat, messages, mythicMobsCompat, citizensCompat, tARDISWeepingAngelsCompat, mysteriousHalloweenCompat), true), mob,
 						player, 0, cash));
 		}
 	}
@@ -146,7 +152,7 @@ public class DataStoreManager {
 	// PlayerSettings
 	// *****************************************************************************
 	public void requestPlayerSettings(OfflinePlayer player, IDataCallback<PlayerSettings> callback) {
-		mTaskThread.addTask(new PlayerSettingsRetrieverTask(player, mWaiting), callback);
+		mTaskThread.addTask(new PlayerSettingsRetrieverTask(player, mWaiting, messages, configManager), callback);
 	}
 
 	/**
@@ -188,7 +194,7 @@ public class DataStoreManager {
 		try {
 			return mStore.getPlayerId(offlinePlayer);
 		} catch (DataStoreException e) {
-			if (MobHunting.getConfigManager().killDebug)
+			if (configManager.killDebug)
 				e.printStackTrace();
 		}
 		throw new UserNotFoundException(
@@ -203,7 +209,7 @@ public class DataStoreManager {
 	 */
 	public void flush() {
 		if (mWaiting.size() != 0) {
-			Messages.debug("Flushing waiting %s data to database...", mWaiting.size());
+			messages.debug("Flushing waiting %s data to database...", mWaiting.size());
 			mTaskThread.addTask(new StoreTask(mWaiting), null);
 		}
 	}
@@ -222,19 +228,19 @@ public class DataStoreManager {
 				Thread.sleep(500);
 				n++;
 			}
-			Messages.debug("mTaskThread.state=%s", mTaskThread.getState());
+			messages.debug("mTaskThread.state=%s", mTaskThread.getState());
 			if (mTaskThread.getState() == Thread.State.RUNNABLE) {
-				Messages.debug("Interupting mTaskThread");
+				messages.debug("Interupting mTaskThread");
 				mTaskThread.interrupt();
 			}
-			Messages.debug("mStoreThread.state=%s", mStoreThread.getState());
-			Messages.debug("Interupting mStoreThread");
+			messages.debug("mStoreThread.state=%s", mStoreThread.getState());
+			messages.debug("Interupting mStoreThread");
 			mStoreThread.interrupt();
-			Messages.debug("mTaskThread.state=%s", mTaskThread.getState());
+			messages.debug("mTaskThread.state=%s", mTaskThread.getState());
 			if (mTaskThread.getState() != Thread.State.WAITING) {
 				mTaskThread.waitForEmptyQueue();
 			} else {
-				Messages.debug("Interupting mTaskThread");
+				messages.debug("Interupting mTaskThread");
 				mTaskThread.interrupt();
 			}
 
@@ -281,17 +287,12 @@ public class DataStoreManager {
 					}
 					mTaskThread.addTask(new StoreTask(mWaiting), null);
 
-					Bukkit.getScheduler().runTask(MobHunting.getInstance(), new Runnable() {
-						@Override
-						public void run() {
-							MobHunting.getGrindingManager().saveData();
-						}
-					});
+					Bukkit.getScheduler().runTask(MobHunting.getInstance(), () -> grindingManager.saveData());
 
 					Thread.sleep(mSaveInterval * 50);
 				}
 			} catch (InterruptedException e) {
-				Messages.debug("StoreThread was interrupted");
+				messages.debug("StoreThread was interrupted");
 			}
 		}
 	}
@@ -347,7 +348,7 @@ public class DataStoreManager {
 				return;
 
 			synchronized (mSignal) {
-				Messages.debug("waitForEmptyQueue: Waiting for %s+%s tasks to finish before closing connections.",
+				messages.debug("waitForEmptyQueue: Waiting for %s+%s tasks to finish before closing connections.",
 						mQueue.size(), mWaiting.size());
 				while (!mQueue.isEmpty())
 					mSignal.wait();
@@ -371,8 +372,8 @@ public class DataStoreManager {
 		public void run() {
 			try {
 				while (true) {
-					if (MobHunting.getConfigManager().debugSQL && mQueue.size() > 20) {
-						Messages.debug("TaskThread: mQueue.size()=%s", mQueue.size());
+					if (configManager.debugSQL && mQueue.size() > 20) {
+						messages.debug("TaskThread: mQueue.size()=%s", mQueue.size());
 					}
 					if (mQueue.isEmpty())
 						synchronized (mSignal) {
@@ -394,7 +395,7 @@ public class DataStoreManager {
 									new CallbackCaller((IDataCallback<Object>) task.callback, result, true));
 
 					} catch (DataStoreException e) {
-						Messages.debug("DataStoreManager: TaskThread.run() failed!!!!!!!");
+						messages.debug("DataStoreManager: TaskThread.run() failed!!!!!!!");
 						if (task.callback != null)
 							Bukkit.getScheduler().runTask(MobHunting.getInstance(),
 									new CallbackCaller((IDataCallback<Object>) task.callback, e, false));
@@ -404,7 +405,7 @@ public class DataStoreManager {
 				}
 
 			} catch (InterruptedException e) {
-				Messages.debug(" TaskThread was interrupted");
+				messages.debug(" TaskThread was interrupted");
 			}
 		}
 	}

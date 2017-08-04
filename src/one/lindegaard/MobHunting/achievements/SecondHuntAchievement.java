@@ -1,82 +1,82 @@
 package one.lindegaard.MobHunting.achievements;
 
+import one.lindegaard.MobHunting.ConfigManager;
+import one.lindegaard.MobHunting.Messages;
+import one.lindegaard.MobHunting.mobs.ExtendedMob;
+import one.lindegaard.MobHunting.mobs.ExtendedMobManager;
+import one.lindegaard.MobHunting.mobs.MobPlugin;
 import org.bukkit.inventory.ItemStack;
 
-import one.lindegaard.MobHunting.Messages;
-import one.lindegaard.MobHunting.MobHunting;
-import one.lindegaard.MobHunting.mobs.ExtendedMob;
-import one.lindegaard.MobHunting.mobs.MobPlugin;
+public class SecondHuntAchievement extends ProgressAchievement {
 
-public class SecondHuntAchievement implements ProgressAchievement {
-	private ExtendedMob mExtendedMob;
 
-	public SecondHuntAchievement(ExtendedMob extendedMob) {
-		mExtendedMob = extendedMob;
+	public SecondHuntAchievement(ConfigManager configManager, AchievementManager achievementManager, ExtendedMobManager extendedMobManager, ExtendedMob extendedMob) {
+		super(configManager, achievementManager, extendedMobManager, extendedMob);
 	}
 
 	@Override
 	public String getName() {
-		return Messages.getString("achievements.hunter.2.name", "mob", mExtendedMob.getFriendlyName());
+		return Messages.getString("achievements.hunter.2.name", "mob", extendedMob.getFriendlyName());
 	}
 
 	@Override
 	public String getID() {
-		if (mExtendedMob.getMobPlugin() == MobPlugin.Minecraft)
-			return "hunting-level2-" + mExtendedMob.getMobName().toLowerCase();
+		if (extendedMob.getMobPlugin() == MobPlugin.Minecraft)
+			return "hunting-level2-" + extendedMob.getMobName().toLowerCase();
 		else
-			return mExtendedMob.getMobPlugin().name().toLowerCase() + "-hunting-level2-" + mExtendedMob.getMobtype().toLowerCase();
+			return extendedMob.getMobPlugin().name().toLowerCase() + "-hunting-level2-" + extendedMob.getMobtype().toLowerCase();
 
 	}
 
 	@Override
 	public String getDescription() {
 		return Messages.getString("achievements.hunter.2.description", "count", getNextLevel(), "mob",
-				mExtendedMob.getFriendlyName());
+				extendedMob.getFriendlyName());
 	}
 
 	@Override
 	public double getPrize() {
-		return MobHunting.getConfigManager().specialHunter2;
+		return configManager.specialHunter2;
 	}
 
 	@Override
 	public int getNextLevel() {
-		return (int) Math.round(mExtendedMob.getProgressAchievementLevel1() * 2.5);
+		return (int) Math.round(extendedMob.getProgressAchievementLevel1() * 2.5);
 	}
 
 	@Override
 	public String inheritFrom() {
-		if (mExtendedMob.getMobPlugin() == MobPlugin.Minecraft)
-			return "hunting-level1-" + mExtendedMob.getMobtype().toLowerCase();
+		if (extendedMob.getMobPlugin() == MobPlugin.Minecraft)
+			return "hunting-level1-" + extendedMob.getMobtype().toLowerCase();
 		else
-			return mExtendedMob.getMobPlugin().name().toLowerCase() + "-hunting-level1-" + mExtendedMob.getMobtype().toLowerCase();
+			return extendedMob.getMobPlugin().name().toLowerCase() + "-hunting-level1-" + extendedMob.getMobtype().toLowerCase();
 	}
 
 	@Override
 	public String nextLevelId() {
-		if (mExtendedMob.getMobPlugin() == MobPlugin.Minecraft)
-			return "hunting-level3-" + mExtendedMob.getMobtype().toLowerCase();
+		if (extendedMob.getMobPlugin() == MobPlugin.Minecraft)
+			return "hunting-level3-" + extendedMob.getMobtype().toLowerCase();
 		else
-			return mExtendedMob.getMobPlugin().name().toLowerCase() + "-hunting-level3-" + mExtendedMob.getMobtype().toLowerCase();
+			return extendedMob.getMobPlugin().name().toLowerCase() + "-hunting-level3-" + extendedMob.getMobtype().toLowerCase();
 	}
 
 	@Override
 	public String getPrizeCmd() {
-		return MobHunting.getConfigManager().specialHunter2Cmd;
+		return configManager.specialHunter2Cmd;
 	}
 
 	@Override
 	public String getPrizeCmdDescription() {
-		return MobHunting.getConfigManager().specialHunter2CmdDesc;
+		return configManager.specialHunter2CmdDesc;
 	}
 
 	@Override
 	public ItemStack getSymbol() {
-		return getExtendedMob().getCustomHead(mExtendedMob.getMobName(), 2, 0);
+		return getExtendedMob().getCustomHead(extendedMob.getMobName(), 2, 0);
 	}
 
 	@Override
 	public ExtendedMob getExtendedMob() {
-		return mExtendedMob;
+		return extendedMob;
 	}
 }

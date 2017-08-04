@@ -1,16 +1,20 @@
 package one.lindegaard.MobHunting.achievements;
 
+import one.lindegaard.MobHunting.ConfigManager;
+import one.lindegaard.MobHunting.Messages;
+import one.lindegaard.MobHunting.events.MobHuntKillEvent;
+import one.lindegaard.MobHunting.mobs.ExtendedMobManager;
 import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
 
-import one.lindegaard.MobHunting.Messages;
-import one.lindegaard.MobHunting.MobHunting;
-import one.lindegaard.MobHunting.events.MobHuntKillEvent;
+public class MasterSniper extends Achievement implements Listener {
 
-public class MasterSniper implements Achievement, Listener {
+	public MasterSniper(ConfigManager configManager, AchievementManager achievementManager, ExtendedMobManager extendedMobManager) {
+		super(configManager, achievementManager, extendedMobManager, messages);
+	}
 
 	@Override
 	public String getName() {
@@ -29,7 +33,7 @@ public class MasterSniper implements Achievement, Listener {
 
 	@Override
 	public double getPrize() {
-		return MobHunting.getConfigManager().specialMasterSniper;
+		return configManager.specialMasterSniper;
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR)
@@ -37,23 +41,23 @@ public class MasterSniper implements Achievement, Listener {
 		if (event.getPlayer().isInsideVehicle() && event.getDamageInfo().getWeapon().getType() == Material.BOW
 				&& !event.getDamageInfo().isMeleWeapenUsed()
 				&& event.getPlayer().getVehicle().getVelocity().length() > 0.2
-				&& MobHunting.getConfigManager().getBaseKillPrize(event.getKilledEntity()) > 0) {
+				&& configManager.getBaseKillPrize(event.getKilledEntity()) > 0) {
 			double dist = event.getDamageInfo().getAttackerPosition().distance(event.getKilledEntity().getLocation());
 			if (dist >= 40) {
-				MobHunting.getAchievementManager().awardAchievement(this, event.getPlayer(),
-						MobHunting.getExtendedMobManager().getExtendedMobFromEntity(event.getKilledEntity()));
+				achievementManager.awardAchievement(this, event.getPlayer(),
+						extendedMobManager.getExtendedMobFromEntity(event.getKilledEntity()));
 			}
 		}
 	}
 
 	@Override
 	public String getPrizeCmd() {
-		return MobHunting.getConfigManager().specialMasterSniperCmd;
+		return configManager.specialMasterSniperCmd;
 	}
 
 	@Override
 	public String getPrizeCmdDescription() {
-		return MobHunting.getConfigManager().specialMasterSniperCmdDesc;
+		return configManager.specialMasterSniperCmdDesc;
 	}
 
 	@Override

@@ -1,16 +1,19 @@
 package one.lindegaard.MobHunting.commands;
 
-import java.util.List;
-
+import one.lindegaard.MobHunting.ConfigManager;
+import one.lindegaard.MobHunting.Messages;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
-import one.lindegaard.MobHunting.Messages;
-import one.lindegaard.MobHunting.MobHunting;
+import java.util.List;
 
 public class DebugCommand implements ICommand {
+	private ConfigManager configManager;
+	private Messages messages;
 
-	public DebugCommand() {
+	public DebugCommand(ConfigManager configManager, Messages messages) {
+		this.configManager = configManager;
+		this.messages = messages;
 	}
 
 	// Used case
@@ -38,7 +41,7 @@ public class DebugCommand implements ICommand {
 
 	@Override
 	public String getDescription() {
-		return Messages.getString("mobhunting.commands.debug.description");
+		return messages.getString("mobhunting.commands.debug.description");
 	}
 
 	@Override
@@ -66,15 +69,15 @@ public class DebugCommand implements ICommand {
 	}
 
 	private void toggledebugMode(CommandSender sender) {
-		boolean debug = MobHunting.getConfigManager().killDebug;
+		boolean debug = configManager.killDebug;
 		if (debug) {
-			MobHunting.getConfigManager().killDebug = false;
-			sender.sendMessage("[MobHunting] " + Messages.getString("mobhunting.commands.debug.disabled"));
-			MobHunting.getConfigManager().saveConfig();
+			configManager.killDebug = false;
+			sender.sendMessage("[MobHunting] " + messages.getString("mobhunting.commands.debug.disabled"));
+			configManager.saveConfig();
 		} else {
-			MobHunting.getConfigManager().killDebug = true;
-			sender.sendMessage("[MobHunting] " + Messages.getString("mobhunting.commands.debug.enabled"));
-			MobHunting.getConfigManager().saveConfig();
+			configManager.killDebug = true;
+			sender.sendMessage("[MobHunting] " + messages.getString("mobhunting.commands.debug.enabled"));
+			configManager.saveConfig();
 		}
 
 	}

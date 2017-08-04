@@ -1,11 +1,11 @@
 package one.lindegaard.MobHunting.leaderboard;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
+import one.lindegaard.MobHunting.MobHunting;
+import one.lindegaard.MobHunting.StatType;
+import one.lindegaard.MobHunting.storage.DataStoreManager;
+import one.lindegaard.MobHunting.storage.IDataCallback;
+import one.lindegaard.MobHunting.storage.StatStore;
+import one.lindegaard.MobHunting.storage.TimePeriod;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -15,12 +15,7 @@ import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
 import org.bukkit.util.BlockVector;
 
-import one.lindegaard.MobHunting.Messages;
-import one.lindegaard.MobHunting.MobHunting;
-import one.lindegaard.MobHunting.StatType;
-import one.lindegaard.MobHunting.storage.IDataCallback;
-import one.lindegaard.MobHunting.storage.StatStore;
-import one.lindegaard.MobHunting.storage.TimePeriod;
+import java.util.*;
 
 public class LegacyLeaderboard implements IDataCallback<List<StatStore>> {
 	private String mId;
@@ -33,13 +28,16 @@ public class LegacyLeaderboard implements IDataCallback<List<StatStore>> {
 	private TimePeriod mPeriod;
 	private StatType mType;
 
+	private DataStoreManager dataStoreManager;
+
 	public LegacyLeaderboard(String id, StatType type, TimePeriod period,
-			Location pointA, Location pointB, boolean horizontal)
+							 Location pointA, Location pointB, boolean horizontal, DataStoreManager dataStoreManager)
 			throws IllegalArgumentException {
 		mId = id;
 		mType = type;
 		mPeriod = period;
 		mWorld = pointA.getWorld();
+		this.dataStoreManager = dataStoreManager;
 
 		mMinCorner = new BlockVector(Math.min(pointA.getBlockX(),
 				pointB.getBlockX()), Math.min(pointA.getBlockY(),
@@ -53,12 +51,13 @@ public class LegacyLeaderboard implements IDataCallback<List<StatStore>> {
 		if (mMaxCorner.getBlockX() - mMinCorner.getBlockX() > 1
 				&& mMaxCorner.getBlockZ() - mMaxCorner.getBlockZ() > 1)
 			throw new IllegalArgumentException(
-					Messages.getString("leaderboard.thick"));
+					MobHunting.getInstance().getMessages().getString("leaderboard.thick"));
 
 		mHorizontal = horizontal;
 	}
 
-	LegacyLeaderboard() {
+	LegacyLeaderboard(DataStoreManager dataStoreManager) {
+		this.dataStoreManager = dataStoreManager;
 	}
 
 	private List<Sign> getSigns() {
@@ -114,7 +113,7 @@ public class LegacyLeaderboard implements IDataCallback<List<StatStore>> {
 	}
 
 	public void updateBoard() {
-		MobHunting.getDataStoreManager().requestStats(mType, mPeriod,
+		dataStoreManager.requestStats(mType, mPeriod,
 				countSigns() * 4, this);
 	}
 

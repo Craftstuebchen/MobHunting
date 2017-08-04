@@ -1,15 +1,5 @@
 package one.lindegaard.MobHunting.compatibility;
 
-import java.util.Iterator;
-import java.util.List;
-
-import org.bukkit.Location;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.scheduler.BukkitRunnable;
-
 import com.comphenix.packetwrapper.WrapperPlayServerCollect;
 import com.comphenix.packetwrapper.WrapperPlayServerWorldParticles;
 import com.comphenix.protocol.PacketType;
@@ -21,13 +11,29 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.reflect.StructureModifier;
 import com.comphenix.protocol.wrappers.EnumWrappers.Particle;
-
+import one.lindegaard.MobHunting.ConfigManager;
 import one.lindegaard.MobHunting.MobHunting;
 import one.lindegaard.MobHunting.grinding.Area;
+import org.bukkit.Location;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.scheduler.BukkitRunnable;
+
+import java.util.List;
 
 public class ProtocolLibHelper {
 
     private ProtocolManager protocolManager;
+
+    private ProtocolLibCompat protocolLibCompat;
+    private ConfigManager configManager;
+
+    public ProtocolLibHelper(ProtocolLibCompat protocolLibCompat, ConfigManager configManager) {
+        this.protocolLibCompat = protocolLibCompat;
+        this.configManager = configManager;
+    }
 
     public void enableProtocolLib() {
         protocolManager = ProtocolLibrary.getProtocolManager();
@@ -86,7 +92,7 @@ public class ProtocolLibHelper {
     }
 
     public void showGrindingArea(final Player player, final Area grindingArea, final Location killedLocation) {
-        if (ProtocolLibCompat.isSupported()) {
+        if (protocolLibCompat.isSupported()) {
             final WrapperPlayServerWorldParticles wpwp = new WrapperPlayServerWorldParticles();
             final long now = System.currentTimeMillis();
             new BukkitRunnable() {
@@ -127,11 +133,11 @@ public class ProtocolLibHelper {
                         wpwp.setY((float) (grindingArea.getCenter().getBlockY() + 0.2));
                         wpwp.setOffsetY(0);
                         for (int n = 0; n < 360; n = n
-                                + (int) (45 / MobHunting.getConfigManager().grindingDetectionRange)) {
+                                + (int) (45 / configManager.grindingDetectionRange)) {
                             wpwp.setX((float) (grindingArea.getCenter().getBlockX() + 0.5
-                                    + Math.cos(n) * MobHunting.getConfigManager().grindingDetectionRange));
+                                    + Math.cos(n) * configManager.grindingDetectionRange));
                             wpwp.setZ((float) (grindingArea.getCenter().getBlockZ() + 0.5
-                                    + Math.sin(n) * MobHunting.getConfigManager().grindingDetectionRange));
+                                    + Math.sin(n) * configManager.grindingDetectionRange));
                             wpwp.sendPacket(player);
                         }
                         if (System.currentTimeMillis() > now + (20000L))

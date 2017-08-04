@@ -1,13 +1,13 @@
 package one.lindegaard.MobHunting;
 
+import one.lindegaard.MobHunting.mobs.ExtendedMob;
+import one.lindegaard.MobHunting.mobs.MinecraftMob;
+import one.lindegaard.MobHunting.mobs.MobPlugin;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
-
-import one.lindegaard.MobHunting.mobs.MobPlugin;
-import one.lindegaard.MobHunting.mobs.ExtendedMob;
-import one.lindegaard.MobHunting.mobs.MinecraftMob;
 
 public class StatType {
 	public static final StatType AchievementCount = new StatType("achievement_count", "stats.achievement_count");
@@ -15,7 +15,7 @@ public class StatType {
 	public static final StatType AssistsTotal = new StatType("total_assist", "stats.total_assist");
 	public static final StatType CashTotal = new StatType("total_cash", "stats.total_cash");
 	private static StatType[] mValues = new StatType[4 + MobPlugin.values().length * 3
-			+ MobHunting.getExtendedMobManager().getAllMobs().size() * 3];
+			+ MobHunting.getInstance().getExtendedMobManager().getAllMobs().size() * 3];
 	private static HashMap<String, StatType> mNameLookup = new HashMap<String, StatType>();
 
 	static {
@@ -53,7 +53,7 @@ public class StatType {
 		}
 
 		// adding other mobtypes from other plugins
-		Iterator<Entry<Integer, ExtendedMob>> itr = MobHunting.getExtendedMobManager().getAllMobs().entrySet()
+		Iterator<Entry<Integer, ExtendedMob>> itr = MobHunting.getInstance().getExtendedMobManager().getAllMobs().entrySet()
 				.iterator();
 		offset = offset + MinecraftMob.values().length * 3;
 
@@ -126,24 +126,24 @@ public class StatType {
 
 	public String translateName() {
 		if (mExtra == null)
-			return Messages.getString(mName);
+			return MobHunting.getInstance().getMessages().getString(mName);
 
 		String[] extra = Arrays.copyOf(mExtra, mExtra.length);
 		for (int i = 1; i < extra.length; i += 2)
-			extra[i] = Messages.getString(extra[i]);
+			extra[i] = MobHunting.getInstance().getMessages().getString(extra[i]);
 
-		return Messages.getString(mName, (Object[]) extra);
+		return MobHunting.getInstance().getMessages().getString(mName, (Object[]) extra);
 	}
 
 	public String longTranslateName() {
 		if (mExtra == null)
-			return Messages.getString(mName);
+			return MobHunting.getInstance().getMessages().getString(mName);
 
 		String[] extra = Arrays.copyOf(mExtra, mExtra.length);
 		for (int i = 1; i < extra.length; i += 2)
-			extra[i] = Messages.getString(extra[i]);
+			extra[i] = MobHunting.getInstance().getMessages().getString(extra[i]);
 
-		return Messages.getString(mName, (Object[]) extra);
+		return MobHunting.getInstance().getMessages().getString(mName, (Object[]) extra);
 	}
 
 	public static StatType[] values() {

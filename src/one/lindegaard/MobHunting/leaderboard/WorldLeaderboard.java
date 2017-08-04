@@ -1,18 +1,14 @@
 package one.lindegaard.MobHunting.leaderboard;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.UUID;
-
+import one.lindegaard.MobHunting.StatType;
+import one.lindegaard.MobHunting.rewards.RewardManager;
+import one.lindegaard.MobHunting.storage.DataStoreManager;
+import one.lindegaard.MobHunting.storage.IDataCallback;
+import one.lindegaard.MobHunting.storage.StatStore;
+import one.lindegaard.MobHunting.storage.TimePeriod;
+import one.lindegaard.MobHunting.util.Misc;
 import org.apache.commons.lang.Validate;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Chunk;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
@@ -21,13 +17,7 @@ import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.material.Sign;
 import org.bukkit.util.Vector;
 
-import one.lindegaard.MobHunting.MobHunting;
-import one.lindegaard.MobHunting.StatType;
-import one.lindegaard.MobHunting.rewards.RewardManager;
-import one.lindegaard.MobHunting.storage.IDataCallback;
-import one.lindegaard.MobHunting.storage.StatStore;
-import one.lindegaard.MobHunting.storage.TimePeriod;
-import one.lindegaard.MobHunting.util.Misc;
+import java.util.*;
 
 public class WorldLeaderboard implements IDataCallback<List<StatStore>> {
 	private static String EMPTY_STRING = "";
@@ -47,10 +37,12 @@ public class WorldLeaderboard implements IDataCallback<List<StatStore>> {
 	private List<StatStore> mData;
 
 	private RewardManager rewardManager;
+	private DataStoreManager dataStoreManager;
 
 	public WorldLeaderboard(Location location, BlockFace facing, int width, int height, boolean horizontal,
-							StatType[] stat, TimePeriod[] period, RewardManager rewardManager) {
+							StatType[] stat, TimePeriod[] period, RewardManager rewardManager, DataStoreManager dataStoreManager) {
 		this.rewardManager = rewardManager;
+		this.dataStoreManager = dataStoreManager;
 		Validate.isTrue(facing == BlockFace.NORTH || facing == BlockFace.EAST || facing == BlockFace.SOUTH
 				|| facing == BlockFace.WEST);
 
@@ -66,8 +58,9 @@ public class WorldLeaderboard implements IDataCallback<List<StatStore>> {
 		mTypeIndex = 0;
 	}
 
-	WorldLeaderboard(RewardManager rewardManager) {
+	WorldLeaderboard(RewardManager rewardManager, DataStoreManager dataStoreManager) {
 		this.rewardManager = rewardManager;
+		this.dataStoreManager = dataStoreManager;
 	}
 
 	public List<StatStore> getCurrentStats() {
@@ -173,7 +166,7 @@ public class WorldLeaderboard implements IDataCallback<List<StatStore>> {
 				if (mPeriodIndex >= mPeriod.length)
 					mPeriodIndex = 0;
 			}
-			MobHunting.getDataStoreManager().requestStats(getStatType(), getPeriod(), mWidth * mHeight * 2, this);
+			dataStoreManager.requestStats(getStatType(), getPeriod(), mWidth * mHeight * 2, this);
 		} else {
 			Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "[MobHunting][WARNING] The leaderboard at "
 					+ mLocation.toString() + " has no StatType");

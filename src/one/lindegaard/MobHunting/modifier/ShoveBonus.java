@@ -1,38 +1,43 @@
 package one.lindegaard.MobHunting.modifier;
 
+import one.lindegaard.MobHunting.ConfigManager;
+import one.lindegaard.MobHunting.DamageInformation;
+import one.lindegaard.MobHunting.HuntData;
+import one.lindegaard.MobHunting.Messages;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
-import one.lindegaard.MobHunting.DamageInformation;
-import one.lindegaard.MobHunting.HuntData;
-import one.lindegaard.MobHunting.Messages;
-import one.lindegaard.MobHunting.MobHunting;
+public class ShoveBonus extends IModifier {
 
-public class ShoveBonus implements IModifier {
 
-	@Override
-	public String getName() {
-		return ChatColor.AQUA + Messages.getString("bonus.ashove.name"); //$NON-NLS-1$
-	}
 
-	@Override
-	public double getMultiplier(Entity deadEntity, Player killer, HuntData data, DamageInformation extraInfo,
-			EntityDamageByEntityEvent lastDamageCause) {
-		return MobHunting.getConfigManager().bonusSendFalling;
-	}
+    public ShoveBonus(ConfigManager configManager, Messages messages) {
+        super(configManager,messages);
+    }
 
-	@Override
-	public boolean doesApply(Entity deadEntity, Player killer, HuntData data, DamageInformation extraInfo,
-			EntityDamageByEntityEvent lastDamageCause) {
-		if (extraInfo.getAttacker() != killer)
-			return false;
+    @Override
+    public String getName() {
+        return ChatColor.AQUA + messages.getString("bonus.ashove.name"); //$NON-NLS-1$
+    }
 
-		if (deadEntity.getLastDamageCause() != null)
-			return deadEntity.getLastDamageCause().getCause() == DamageCause.FALL;
-		return false;
-	}
+    @Override
+    public double getMultiplier(Entity deadEntity, Player killer, HuntData data, DamageInformation extraInfo,
+                                EntityDamageByEntityEvent lastDamageCause) {
+        return configManager.bonusSendFalling;
+    }
+
+    @Override
+    public boolean doesApply(Entity deadEntity, Player killer, HuntData data, DamageInformation extraInfo,
+                             EntityDamageByEntityEvent lastDamageCause) {
+        if (extraInfo.getAttacker() != killer)
+            return false;
+
+        if (deadEntity.getLastDamageCause() != null)
+            return deadEntity.getLastDamageCause().getCause() == DamageCause.FALL;
+        return false;
+    }
 
 }

@@ -1,19 +1,22 @@
 package one.lindegaard.MobHunting.modifier;
 
-import java.util.ArrayList;
-
+import one.lindegaard.MobHunting.ConfigManager;
+import one.lindegaard.MobHunting.DamageInformation;
+import one.lindegaard.MobHunting.HuntData;
+import one.lindegaard.MobHunting.Messages;
+import one.lindegaard.MobHunting.compatibility.InfernalMobsCompat;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
-import one.lindegaard.MobHunting.DamageInformation;
-import one.lindegaard.MobHunting.HuntData;
-import one.lindegaard.MobHunting.Messages;
-import one.lindegaard.MobHunting.MobHunting;
-import one.lindegaard.MobHunting.compatibility.InfernalMobsCompat;
+import java.util.ArrayList;
 
-public class InfernalMobBonus implements IModifier {
+public class InfernalMobBonus extends IModifier {
+
+	public InfernalMobBonus(ConfigManager configManager) {
+		super(configManager);
+	}
 
 	@Override
 	public String getName() {
@@ -30,7 +33,7 @@ public class InfernalMobBonus implements IModifier {
 				ArrayList<String> list = new ArrayList<>();
 				if (entity.getMetadata(InfernalMobsCompat.MH_INFERNALMOBS).get(0).value() instanceof ArrayList<?>)
 					list = (ArrayList<String>) entity.getMetadata(InfernalMobsCompat.MH_INFERNALMOBS).get(0).value();
-				mul = Math.pow(MobHunting.getConfigManager().multiplierPerInfernalLevel, list.size());
+				mul = Math.pow(configManager.multiplierPerInfernalLevel, list.size());
 			}
 		}
 		return mul;

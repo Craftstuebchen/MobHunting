@@ -1,16 +1,20 @@
 package one.lindegaard.MobHunting.achievements;
 
+import one.lindegaard.MobHunting.ConfigManager;
+import one.lindegaard.MobHunting.Messages;
+import one.lindegaard.MobHunting.events.MobHuntKillEvent;
+import one.lindegaard.MobHunting.mobs.ExtendedMobManager;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
 
-import one.lindegaard.MobHunting.Messages;
-import one.lindegaard.MobHunting.MobHunting;
-import one.lindegaard.MobHunting.events.MobHuntKillEvent;
+public class TheHuntBegins extends Achievement implements Listener {
+	public TheHuntBegins(ConfigManager configManager, AchievementManager achievementManager, ExtendedMobManager extendedMobManager) {
+		super(configManager, achievementManager, extendedMobManager, messages);
+	}
 
-public class TheHuntBegins implements Achievement, Listener {
 	@Override
 	public String getName() {
 		return Messages.getString("achievements.huntbegins.name");
@@ -28,26 +32,26 @@ public class TheHuntBegins implements Achievement, Listener {
 
 	@Override
 	public double getPrize() {
-		return MobHunting.getConfigManager().specialHuntBegins;
+		return configManager.specialHuntBegins;
 	}
 
 	@EventHandler
 	public void onKill(MobHuntKillEvent event) {
 		Entity killedEntity = event.getKilledEntity();
-		if (MobHunting.getConfigManager().getBaseKillPrize(killedEntity) != 0
-				|| !MobHunting.getConfigManager().getKillConsoleCmd(killedEntity).isEmpty())
-			MobHunting.getAchievementManager().awardAchievement(this, event.getPlayer(),
-					MobHunting.getExtendedMobManager().getExtendedMobFromEntity(killedEntity));
+		if (configManager.getBaseKillPrize(killedEntity) != 0
+				|| !configManager.getKillConsoleCmd(killedEntity).isEmpty())
+			achievementManager.awardAchievement(this, event.getPlayer(),
+					extendedMobManager.getExtendedMobFromEntity(killedEntity));
 	}
 
 	@Override
 	public String getPrizeCmd() {
-		return MobHunting.getConfigManager().specialHuntBeginsCmd;
+		return configManager.specialHuntBeginsCmd;
 	}
 
 	@Override
 	public String getPrizeCmdDescription() {
-		return MobHunting.getConfigManager().specialHuntBeginsCmdDesc;
+		return configManager.specialHuntBeginsCmdDesc;
 	}
 
 	@Override

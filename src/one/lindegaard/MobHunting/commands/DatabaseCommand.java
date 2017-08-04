@@ -1,24 +1,25 @@
 package one.lindegaard.MobHunting.commands;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
+import one.lindegaard.MobHunting.Messages;
+import one.lindegaard.MobHunting.storage.DataStoreException;
+import one.lindegaard.MobHunting.storage.IDataStore;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.event.Listener;
 
-import one.lindegaard.MobHunting.Messages;
-import one.lindegaard.MobHunting.MobHunting;
-import one.lindegaard.MobHunting.storage.DataStoreException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DatabaseCommand implements ICommand, Listener {
 
-	// private IDataStore mStore;
+	 private IDataStore iDataStore;
+	private Messages messages;
 
 	// private DataStoreManager mStoreManager;
 
-	public DatabaseCommand() {
+	public DatabaseCommand(IDataStore iDataStore, Messages messages) {
+		this.iDataStore = iDataStore;
+		this.messages = messages;
 	}
 
 	@Override
@@ -44,7 +45,7 @@ public class DatabaseCommand implements ICommand, Listener {
 
 	@Override
 	public String getDescription() {
-		return Messages.getString("mobhunting.commands.database.description");
+		return messages.getString("mobhunting.commands.database.description");
 	}
 
 	@Override
@@ -82,7 +83,7 @@ public class DatabaseCommand implements ICommand, Listener {
 			return false;
 		if (args.length == 1 && (args[0].equalsIgnoreCase("fixleaderboard"))) {
 			try {
-				MobHunting.getStoreManager().databaseFixLeaderboard();
+				iDataStore.databaseFixLeaderboard();
 			} catch (DataStoreException e) {
 				e.printStackTrace();
 			}
@@ -90,7 +91,7 @@ public class DatabaseCommand implements ICommand, Listener {
 		} else if (args.length == 2 && (args[0].equalsIgnoreCase("convert-to-utf8"))) {
 			String database_name = args[1];
 			try {
-				MobHunting.getStoreManager().databaseConvertToUtf8(database_name);
+				iDataStore.databaseConvertToUtf8(database_name);
 			} catch (DataStoreException e) {
 				e.printStackTrace();
 			}

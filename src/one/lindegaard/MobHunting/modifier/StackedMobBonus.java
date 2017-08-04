@@ -1,17 +1,21 @@
 package one.lindegaard.MobHunting.modifier;
 
-import org.bukkit.ChatColor;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-
+import one.lindegaard.MobHunting.ConfigManager;
 import one.lindegaard.MobHunting.DamageInformation;
 import one.lindegaard.MobHunting.HuntData;
 import one.lindegaard.MobHunting.Messages;
 import one.lindegaard.MobHunting.compatibility.MobStackerCompat;
 import one.lindegaard.MobHunting.compatibility.StackMobCompat;
+import org.bukkit.ChatColor;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
-public class StackedMobBonus implements IModifier {
+public class StackedMobBonus extends IModifier {
+
+	public StackedMobBonus(ConfigManager configManager) {
+		super(configManager);
+	}
 
 	@Override
 	public String getName() {

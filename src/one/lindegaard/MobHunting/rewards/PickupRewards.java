@@ -1,5 +1,6 @@
 package one.lindegaard.MobHunting.rewards;
 
+import one.lindegaard.MobHunting.ConfigManager;
 import one.lindegaard.MobHunting.Messages;
 import one.lindegaard.MobHunting.MobHunting;
 import one.lindegaard.MobHunting.compatibility.ProtocolLibCompat;
@@ -19,28 +20,32 @@ public class PickupRewards {
     private ProtocolLibCompat protocolLibCompat;
     private ProtocolLibHelper protocolLibHelper;
     private RewardManager rewardManager;
+    private ConfigManager configManager;
+    private Messages messages;
 
-    public PickupRewards(ProtocolLibCompat protocolLibCompat, ProtocolLibHelper protocolLibHelper, RewardManager rewardManager) {
+    public PickupRewards(ProtocolLibCompat protocolLibCompat, ProtocolLibHelper protocolLibHelper, RewardManager rewardManager, ConfigManager configManager, Messages messages) {
         this.protocolLibCompat = protocolLibCompat;
         this.protocolLibHelper = protocolLibHelper;
         this.rewardManager = rewardManager;
+        this.configManager = configManager;
+        this.messages = messages;
     }
 
 
-    public void rewardPlayer(Player player, Item item,CallBack callBack){
+    public void rewardPlayer(Player player, Item item, CallBack callBack) {
 
         if (Reward.isReward(item)) {
             Reward reward = Reward.getReward(item);
             // If not Gringotts
             if (reward.getMoney() != 0)
-                if (!MobHunting.getConfigManager().dropMoneyOnGroundUseAsCurrency) {
-                    MobHunting.getRewardManager().depositPlayer(player, reward.getMoney());
+                if (!configManager.dropMoneyOnGroundUseAsCurrency) {
+                    rewardManager.depositPlayer(player, reward.getMoney());
                     if (protocolLibCompat.isSupported())
                         protocolLibHelper.pickupMoney(player, item);
                     item.remove();
                     callBack.setCancelled(true);
-                    Messages.playerActionBarMessage(player, Messages.getString("mobhunting.moneypickup", "money",
-                            MobHunting.getRewardManager().format(reward.getMoney())));
+                    messages.playerActionBarMessage(player, messages.getString("mobhunting.moneypickup", "money",
+                            rewardManager.format(reward.getMoney())));
                 } else {
                     boolean found = false;
                     HashMap<Integer, ? extends ItemStack> slots = player.getInventory()
@@ -55,14 +60,14 @@ public class PickupRewards {
                                 Reward newReward = Reward.getReward(is);
                                 newReward.setMoney(newReward.getMoney() + reward.getMoney());
                                 im.setLore(newReward.getHiddenLore());
-                                String displayName = MobHunting.getConfigManager().dropMoneyOnGroundItemtype
+                                String displayName = configManager.dropMoneyOnGroundItemtype
                                         .equalsIgnoreCase("ITEM")
-                                        ? MobHunting.getRewardManager().format(newReward.getMoney())
+                                        ? rewardManager.format(newReward.getMoney())
                                         : newReward.getDisplayname() + " ("
-                                        + MobHunting.getRewardManager().format(newReward.getMoney())
+                                        + rewardManager.format(newReward.getMoney())
                                         + ")";
                                 im.setDisplayName(
-                                        ChatColor.valueOf(MobHunting.getConfigManager().dropMoneyOnGroundTextColor)
+                                        ChatColor.valueOf(configManager.dropMoneyOnGroundTextColor)
                                                 + displayName);
                                 is.setItemMeta(im);
                                 is.setAmount(1);
@@ -70,9 +75,9 @@ public class PickupRewards {
                                 if (protocolLibCompat.isSupported())
                                     protocolLibHelper.pickupMoney(player, item);
                                 item.remove();
-                                Messages.debug("Added %s to item in slot %s, new value is %s",
-                                        MobHunting.getRewardManager().format(reward.getMoney()), slot,
-                                        MobHunting.getRewardManager().format(newReward.getMoney()));
+                                messages.debug("Added %s to item in slot %s, new value is %s",
+                                        rewardManager.format(reward.getMoney()), slot,
+                                        rewardManager.format(newReward.getMoney()));
                                 found = true;
                                 break;
                             }
@@ -82,12 +87,12 @@ public class PickupRewards {
                     if (!found) {
                         ItemStack is = item.getItemStack();
                         ItemMeta im = is.getItemMeta();
-                        String displayName = MobHunting.getConfigManager().dropMoneyOnGroundItemtype
-                                .equalsIgnoreCase("ITEM") ? MobHunting.getRewardManager().format(reward.getMoney())
+                        String displayName = configManager.dropMoneyOnGroundItemtype
+                                .equalsIgnoreCase("ITEM") ? rewardManager.format(reward.getMoney())
                                 : reward.getDisplayname() + " ("
-                                + MobHunting.getRewardManager().format(reward.getMoney()) + ")";
+                                + rewardManager.format(reward.getMoney()) + ")";
                         im.setDisplayName(
-                                ChatColor.valueOf(MobHunting.getConfigManager().dropMoneyOnGroundTextColor)
+                                ChatColor.valueOf(configManager.dropMoneyOnGroundTextColor)
                                         + displayName);
                         im.setLore(reward.getHiddenLore());
                         is.setItemMeta(im);
@@ -99,18 +104,18 @@ public class PickupRewards {
             if (rewardManager.getDroppedMoney().containsKey(item.getEntityId()))
                 rewardManager.getDroppedMoney().remove(item.getEntityId());
             if (reward.getMoney() == 0)
-                Messages.debug("%s picked up a %s (# of rewards left=%s)", player.getName(),
+                messages.debug("%s picked up a %s (# of rewards left=%s)", player.getName(),
                         reward.getDisplayname(), rewardManager.getDroppedMoney().size());
             else
-                Messages.debug("%s picked up a %s with a value:%s (# of rewards left=%s)", player.getName(),
-                        reward.getDisplayname(), MobHunting.getRewardManager().format(reward.getMoney()),
+                messages.debug("%s picked up a %s with a value:%s (# of rewards left=%s)", player.getName(),
+                        reward.getDisplayname(), rewardManager.format(reward.getMoney()),
                         rewardManager.getDroppedMoney().size());
 
         }
     }
 
 
-    public interface CallBack{
+    public interface CallBack {
 
         void setCancelled(boolean canceled);
 

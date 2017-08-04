@@ -1,16 +1,15 @@
 package one.lindegaard.MobHunting.commands;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import one.lindegaard.MobHunting.Messages;
+import one.lindegaard.MobHunting.MobHunting;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
-import one.lindegaard.MobHunting.Messages;
-import one.lindegaard.MobHunting.MobHunting;
+import java.util.ArrayList;
+import java.util.List;
 
 public class HappyHourCommand implements ICommand {
 
@@ -21,16 +20,19 @@ public class HappyHourCommand implements ICommand {
 
     private BukkitTask happyhourevent = null;
     private BukkitTask happyhoureventStop = null;
+    private Messages messages;
 
-    public HappyHourCommand(int minutesToRun, int minutesLeft, double multiplier) {
+    public HappyHourCommand(int minutesToRun, int minutesLeft, double multiplier, Messages messages) {
 
         this.minutesToRun = minutesToRun;
         this.minutesLeft = minutesLeft;
         this.multiplier = multiplier;
+        this.messages = messages;
     }
 
-    public HappyHourCommand() {
+    public HappyHourCommand(Messages messages) {
 
+        this.messages = messages;
     }
 
     // Used case
@@ -64,7 +66,7 @@ public class HappyHourCommand implements ICommand {
 
     @Override
     public String getDescription() {
-        return Messages.getString("mobhunting.commands.happyhour.description");
+        return messages.getString("mobhunting.commands.happyhour.description");
     }
 
     @Override
@@ -87,11 +89,11 @@ public class HappyHourCommand implements ICommand {
             if (happyhourevent != null && (Bukkit.getScheduler().isCurrentlyRunning(happyhourevent.getTaskId())
                     || Bukkit.getScheduler().isQueued(happyhourevent.getTaskId()))) {
                 minutesLeft = minutesToRun - ((int) (System.currentTimeMillis() - starttime) / (1000 * 60));
-                Messages.debug("The happy hour ends in %s minutes", minutesLeft);
+                messages.debug("The happy hour ends in %s minutes", minutesLeft);
                 for (Player player : Bukkit.getOnlinePlayers()) {
-                    Messages.playerSendTitlesMessage(player,
-                            Messages.getString("mobhunting.commands.happyhour.ongoing_title"),
-                            Messages.getString("mobhunting.commands.happyhour.ongoing_subtitle", "multiplier",
+                    messages.playerSendTitlesMessage(player,
+                            messages.getString("mobhunting.commands.happyhour.ongoing_title"),
+                            messages.getString("mobhunting.commands.happyhour.ongoing_subtitle", "multiplier",
                                     multiplier, "minutes", minutesLeft),
                             20, 100, 20);
                 }
@@ -116,11 +118,11 @@ public class HappyHourCommand implements ICommand {
                     minutesToRun = 0;
                     minutesLeft = 0;
                     multiplier = 1;
-                    Messages.debug("Happy hour was cancelled");
+                    messages.debug("Happy hour was cancelled");
                     for (Player player : Bukkit.getOnlinePlayers()) {
-                        Messages.playerSendTitlesMessage(player,
-                                Messages.getString("mobhunting.commands.happyhour.cancelled_title"),
-                                Messages.getString("mobhunting.commands.happyhour.cancelled_subtitle"), 20, 100, 20);
+                        messages.playerSendTitlesMessage(player,
+                                messages.getString("mobhunting.commands.happyhour.cancelled_title"),
+                                messages.getString("mobhunting.commands.happyhour.cancelled_subtitle"), 20, 100, 20);
                     }
                 } else
                     sender.sendMessage("Its not happy hour now");
@@ -143,22 +145,22 @@ public class HappyHourCommand implements ICommand {
                     || Bukkit.getScheduler().isQueued(happyhourevent.getTaskId()))) {
                 happyhourevent.cancel();
                 happyhoureventStop.cancel();
-                Messages.debug("Happy hour restarted, minutes left:%s", minutesLeft);
+                messages.debug("Happy hour restarted, minutes left:%s", minutesLeft);
             } else {
-                Messages.debug("Happy hour started, minutes left:%s", minutesLeft);
+                messages.debug("Happy hour started, minutes left:%s", minutesLeft);
             }
 
             for (Player player : Bukkit.getOnlinePlayers()) {
-                Messages.playerSendTitlesMessage(player,
-                        Messages.getString("mobhunting.commands.happyhour.started_title"),
-                        Messages.getString("mobhunting.commands.happyhour.started_subtitle", "multiplier", multiplier,
+                messages.playerSendTitlesMessage(player,
+                        messages.getString("mobhunting.commands.happyhour.started_title"),
+                        messages.getString("mobhunting.commands.happyhour.started_subtitle", "multiplier", multiplier,
                                 "minutes", minutesToRun),
                         20, 100, 20);
             }
 
             happyhourevent = Bukkit.getScheduler().runTaskTimer(MobHunting.getInstance(), () -> {
                 minutesLeft = minutesToRun - ((int) (System.currentTimeMillis() - starttime) / (1000 * 60));
-                Messages.debug("The happy hour ends in %s minutes", minutesLeft);
+                messages.debug("The happy hour ends in %s minutes", minutesLeft);
             }, 18000, 18000);
 
             happyhoureventStop = Bukkit.getScheduler().runTaskLater(MobHunting.getInstance(), () -> {
@@ -166,11 +168,11 @@ public class HappyHourCommand implements ICommand {
                 minutesToRun = 0;
                 multiplier = 1;
                 happyhourevent.cancel();
-                Messages.debug("Happy hour ended");
+                messages.debug("Happy hour ended");
                 for (Player player : Bukkit.getOnlinePlayers()) {
-                    Messages.playerSendTitlesMessage(player,
-                            Messages.getString("mobhunting.commands.happyhour.ended_title"),
-                            Messages.getString("mobhunting.commands.happyhour.ended_subtitle"), 20, 100, 20);
+                    messages.playerSendTitlesMessage(player,
+                            messages.getString("mobhunting.commands.happyhour.ended_title"),
+                            messages.getString("mobhunting.commands.happyhour.ended_subtitle"), 20, 100, 20);
                 }
             }, (long) (minutesToRun * 20 * 60));
 
@@ -191,7 +193,7 @@ public class HappyHourCommand implements ICommand {
             items.add("cancel");
         } else if (args.length == 2) {
             if (items.isEmpty()) {
-                Messages.debug("arg[1]=(%s)", args[1]);
+                messages.debug("arg[1]=(%s)", args[1]);
                 items.add("1");
                 items.add("2");
                 items.add("3");

@@ -1,15 +1,19 @@
 package one.lindegaard.MobHunting.achievements;
 
+import one.lindegaard.MobHunting.ConfigManager;
+import one.lindegaard.MobHunting.Messages;
+import one.lindegaard.MobHunting.events.MobHuntKillEvent;
+import one.lindegaard.MobHunting.mobs.ExtendedMobManager;
 import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
 
-import one.lindegaard.MobHunting.Messages;
-import one.lindegaard.MobHunting.MobHunting;
-import one.lindegaard.MobHunting.events.MobHuntKillEvent;
+public class ItsMagic extends Achievement implements Listener {
 
-public class ItsMagic implements Achievement, Listener {
+	public ItsMagic(ConfigManager configManager, AchievementManager achievementManager, ExtendedMobManager extendedMobManager) {
+		super(configManager, achievementManager, extendedMobManager, messages);
+	}
 
 	@Override
 	public String getName() {
@@ -28,25 +32,25 @@ public class ItsMagic implements Achievement, Listener {
 
 	@Override
 	public double getPrize() {
-		return MobHunting.getConfigManager().specialItsMagic;
+		return configManager.specialItsMagic;
 	}
 
 	@EventHandler
 	public void onKill(MobHuntKillEvent event) {
 		if (event.getDamageInfo().getWeapon().getType() == Material.POTION
-				&& MobHunting.getConfigManager().getBaseKillPrize(event.getKilledEntity()) > 0)
-			MobHunting.getAchievementManager().awardAchievement(this, event.getPlayer(),
-					MobHunting.getExtendedMobManager().getExtendedMobFromEntity(event.getKilledEntity()));
+				&& configManager.getBaseKillPrize(event.getKilledEntity()) > 0)
+			achievementManager.awardAchievement(this, event.getPlayer(),
+					extendedMobManager.getExtendedMobFromEntity(event.getKilledEntity()));
 	}
 
 	@Override
 	public String getPrizeCmd() {
-		return MobHunting.getConfigManager().specialItsMagicCmd;
+		return configManager.specialItsMagicCmd;
 	}
 
 	@Override
 	public String getPrizeCmdDescription() {
-		return MobHunting.getConfigManager().specialItsMagicCmdDesc;
+		return configManager.specialItsMagicCmdDesc;
 	}
 
 	@Override

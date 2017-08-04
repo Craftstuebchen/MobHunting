@@ -1,23 +1,6 @@
 package one.lindegaard.MobHunting.storage;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-import java.util.UUID;
-
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.command.ConsoleCommandSender;
-
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
-
 import one.lindegaard.MobHunting.Messages;
 import one.lindegaard.MobHunting.MobHunting;
 import one.lindegaard.MobHunting.StatType;
@@ -25,10 +8,20 @@ import one.lindegaard.MobHunting.bounty.Bounty;
 import one.lindegaard.MobHunting.mobs.MobPlugin;
 import one.lindegaard.MobHunting.util.Misc;
 import one.lindegaard.MobHunting.util.UUIDHelper;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.command.ConsoleCommandSender;
+
+import java.sql.*;
+import java.util.*;
 
 public class MySQLDataStore extends DatabaseDataStore {
+    public MySQLDataStore() {
+        super(configManager, playerSettingsManager, dataStoreManager, rewardManager, extendedMobManager, messages, customMobsCompat, mythicMobsCompat, citizensCompat, tARDISWeepingAngelsCompat, mysteriousHalloweenCompat);
+    }
 
-	// *******************************************************************************
+    // *******************************************************************************
 	// SETUP / INITIALIZE
 	// *******************************************************************************
 

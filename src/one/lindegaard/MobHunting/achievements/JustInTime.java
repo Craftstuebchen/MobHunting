@@ -1,16 +1,20 @@
 package one.lindegaard.MobHunting.achievements;
 
+import one.lindegaard.MobHunting.ConfigManager;
+import one.lindegaard.MobHunting.Messages;
+import one.lindegaard.MobHunting.events.MobHuntKillEvent;
+import one.lindegaard.MobHunting.mobs.ExtendedMobManager;
 import org.bukkit.Material;
 import org.bukkit.World.Environment;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
 
-import one.lindegaard.MobHunting.Messages;
-import one.lindegaard.MobHunting.MobHunting;
-import one.lindegaard.MobHunting.events.MobHuntKillEvent;
+public class JustInTime extends Achievement implements Listener {
 
-public class JustInTime implements Achievement, Listener {
+	public JustInTime(ConfigManager configManager, AchievementManager achievementManager, ExtendedMobManager extendedMobManager) {
+		super(configManager, achievementManager, extendedMobManager, messages);
+	}
 
 	@Override
 	public String getName() {
@@ -29,7 +33,7 @@ public class JustInTime implements Achievement, Listener {
 
 	@Override
 	public double getPrize() {
-		return MobHunting.getConfigManager().specialJustInTime;
+		return configManager.specialJustInTime;
 	}
 
 	@EventHandler
@@ -38,22 +42,22 @@ public class JustInTime implements Achievement, Listener {
 		// Zombies begin burning about 5:30 = 23500
 		// player get a reward if he kills between 5:30 and 6:00.
 		if (event.getKilledEntity().getWorld().getEnvironment().equals(Environment.NORMAL)
-				&& MobHunting.getConfigManager().getBaseKillPrize(event.getKilledEntity()) > 0
+				&& configManager.getBaseKillPrize(event.getKilledEntity()) > 0
 				&& (event.getKilledEntity().getWorld().getTime() >= 23500
 						&& event.getKilledEntity().getWorld().getTime() <= 24000)
 				&& event.getKilledEntity().getFireTicks() > 0)
-			MobHunting.getAchievementManager().awardAchievement(this, event.getPlayer(),
-					MobHunting.getExtendedMobManager().getExtendedMobFromEntity(event.getKilledEntity()));
+			achievementManager.awardAchievement(this, event.getPlayer(),
+					extendedMobManager.getExtendedMobFromEntity(event.getKilledEntity()));
 	}
 
 	@Override
 	public String getPrizeCmd() {
-		return MobHunting.getConfigManager().specialJustInTimeCmd;
+		return configManager.specialJustInTimeCmd;
 	}
 
 	@Override
 	public String getPrizeCmdDescription() {
-		return MobHunting.getConfigManager().specialJustInTimeCmdDesc;
+		return configManager.specialJustInTimeCmdDesc;
 	}
 
 	@Override

@@ -1,19 +1,18 @@
 package one.lindegaard.MobHunting.bounty;
 
+import one.lindegaard.MobHunting.Messages;
+import one.lindegaard.MobHunting.MobHunting;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.InvalidConfigurationException;
-import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Player;
-
-import one.lindegaard.MobHunting.Messages;
-import one.lindegaard.MobHunting.MobHunting;
 
 /**
  * @author Rocologo
@@ -24,8 +23,10 @@ public class WorldGroup {
 	private static File file = new File(MobHunting.getInstance().getDataFolder(), "worldGroups.yml");
 	private static YamlConfiguration config = new YamlConfiguration();
 	private static HashMap<String, List<String>> worldGroups = new HashMap<String, List<String>>();
+	private Messages messages;
 
-	public WorldGroup() {
+	public WorldGroup(Messages messages) {
+		this.messages = messages;
 		if (worldGroups.isEmpty()) {
 			worldGroups.put("DefaultGroup", Arrays.asList("world", "world_nether", "world_the_end"));
 			worldGroups.put("CreativeGroup", Collections.singletonList("creative"));
@@ -80,7 +81,7 @@ public class WorldGroup {
 							+ "\nbounty created in one worldgroup can not be claimed in"
 							+ "\nanother worldgroup. This is to make sure that economies"
 							+ "\nare not mixed.");
-			Messages.debug("Saving worldGroups");
+			messages.debug("Saving worldGroups");
 			ConfigurationSection section = config.createSection("WorldGroups");
 			section.set("WorldGroups", worldGroups);
 			config.save(file);
@@ -92,7 +93,7 @@ public class WorldGroup {
 	public void load() {
 		if (!file.exists())
 			return;
-		Messages.debug("Loading WorldGroups");
+		messages.debug("Loading WorldGroups");
 		try {
 			config.load(file);
 			ConfigurationSection section = config.getConfigurationSection("WorldGroups");

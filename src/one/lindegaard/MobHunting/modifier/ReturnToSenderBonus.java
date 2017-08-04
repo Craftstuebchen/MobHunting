@@ -1,28 +1,31 @@
 package one.lindegaard.MobHunting.modifier;
 
-import org.bukkit.ChatColor;
-import org.bukkit.entity.Ghast;
-import org.bukkit.entity.LargeFireball;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-
+import one.lindegaard.MobHunting.ConfigManager;
 import one.lindegaard.MobHunting.DamageInformation;
 import one.lindegaard.MobHunting.HuntData;
 import one.lindegaard.MobHunting.Messages;
-import one.lindegaard.MobHunting.MobHunting;
+import org.bukkit.ChatColor;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Ghast;
+import org.bukkit.entity.LargeFireball;
+import org.bukkit.entity.Player;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
-public class ReturnToSenderBonus implements IModifier {
+public class ReturnToSenderBonus extends IModifier {
+
+	public ReturnToSenderBonus(ConfigManager configManager,Messages messages) {
+		super(configManager,messages);
+	}
 
 	@Override
 	public String getName() {
-		return ChatColor.GOLD + Messages.getString("bonus.returntosender.name");
+		return ChatColor.GOLD + messages.getString("bonus.returntosender.name");
 	}
 
 	@Override
 	public double getMultiplier(Entity deadEntity, Player killer, HuntData data, DamageInformation extraInfo,
 			EntityDamageByEntityEvent lastDamageCause) {
-		return MobHunting.getConfigManager().bonusReturnToSender;
+		return configManager.bonusReturnToSender;
 	}
 
 	@Override

@@ -81,15 +81,12 @@
         <residence.version>4.7.0.1</residence.version>
         <bossshop.version>2.7.3</bossshop.version>
         <MobStacker.version>2.0.0</MobStacker.version>
-        <mythicmobsold.version>2.5.1</mythicmobsold.version>
-        <mythicmobs.version>4.1.0-SNAPSHOT</mythicmobs.version>
+        <mythicmobs.version>4.0.0</mythicmobs.version>
         <mythiclib.version>0.0.1-20170628.172950-1</mythiclib.version>
         <StackMob.version>1.6.4</StackMob.version>
         <InfernalMobs.version>5.3</InfernalMobs.version>
         <minigameslib.version>1.14.15.jar</minigameslib.version>
 
-        <Gringotts.jar.version>Gringotts-2.9</Gringotts.jar.version>
-        <extrahardmode.version>ExtraHardMode-3.11</extrahardmode.version>
 
     </properties>
 
@@ -465,6 +462,7 @@
             <groupId>me.eccentric_nz.tardisweepingangels</groupId>
             <artifactId>TARDISWeepingAngels</artifactId>
             <version>${TARDISWeepingAngels.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- ConquestiaMobs -->
@@ -472,6 +470,7 @@
             <groupId>CqMobs</groupId>
             <artifactId>CqMobs</artifactId>
             <version>${ConquestiaMobs.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- MobStack -->
@@ -479,6 +478,7 @@
             <groupId>StackMob</groupId>
             <artifactId>uk.antiperson.stackmob</artifactId>
             <version>${StackMob.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- MysteriousHalloween -->
@@ -486,6 +486,7 @@
             <groupId>MysteriousHalloween</groupId>
             <artifactId>MysteriousHalloween</artifactId>
             <version>${MysteriousHalloween.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- SmartGiants -->
@@ -493,6 +494,7 @@
             <groupId>me.jjm_223.smartgiants</groupId>
             <artifactId>SmartGiants</artifactId>
             <version>${SmartGiants.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- Herobrine -->
@@ -500,6 +502,7 @@
             <groupId>net.theprogrammersworld.herobrine.Herobrine</groupId>
             <artifactId>Herobrine</artifactId>
             <version>${Herobrine.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- iDisguise -->
@@ -507,6 +510,7 @@
             <groupId>iDisguise</groupId>
             <artifactId>iDisguise</artifactId>
             <version>${iDisguise.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- DisguiseCraft -->
@@ -514,6 +518,7 @@
             <groupId>pgDev</groupId>
             <artifactId>DisguiseCraft</artifactId>
             <version>${disguisecraft.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- PvpArena -->
@@ -521,6 +526,7 @@
             <groupId>net.slipcor</groupId>
             <artifactId>pvparena</artifactId>
             <version>${PvpArena.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- MinigamesLib -->
@@ -537,6 +543,7 @@
             <groupId>com.connorlinfoot</groupId>
             <artifactId>TitleAPI</artifactId>
             <version>${TitleAPI.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- VanishNoPacket -->
@@ -544,6 +551,7 @@
             <groupId>org.kitteh</groupId>
             <artifactId>VanishNoPacket</artifactId>
             <version>${vanishnopacket.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- Essentials -->
@@ -551,6 +559,7 @@
             <groupId>net.ess3</groupId>
             <artifactId>EssentialsX</artifactId>
             <version>${EssentialsX.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- MobStacker -->
@@ -558,36 +567,32 @@
             <groupId>com.kiwifisher.mobstacker.MobStacker</groupId>
             <artifactId>MobStacker</artifactId>
             <version>${MobStacker.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- Gringotts -->
-        <!-- <dependency> <groupId>org.gestern.gringotts.Gringotts</groupId> <artifactId>Gringotts</artifactId>
-            <version>2.9</version> </dependency> -->
-        <!--<dependency>
-            <groupId>org.gestern</groupId>
-            <artifactId>gringotts</artifactId>
-            <version>2.9</version>
-            <scope>provided</scope>
-        </dependency>-->
-
-
-        <!-- MythicMobs Old -->
         <dependency>
-            <groupId>net.elseland.xikage</groupId>
-            <artifactId>MythicMobs</artifactId>
-            <version>${mythicmobsold.version}</version>
+            <groupId>org.gestern.gringotts.Gringotts</groupId>
+            <artifactId>Gringotts</artifactId>
+            <version>2.9</version>
         </dependency>
 
-        <!-- MythicMobs -->
+
+
+      <!-- MythicMobs -->
         <dependency>
             <groupId>io.lumine.xikage</groupId>
             <artifactId>MythicMobs</artifactId>
             <version>${mythicmobs.version}</version>
+            <scope>provided</scope>
         </dependency>
 
 
-
-
+        <dependency>
+            <groupId>net.elseland.xikage</groupId>
+            <artifactId>MythicMobs</artifactId>
+            <version>2.5.1</version>
+        </dependency>
 
 
         <dependency>
@@ -602,6 +607,7 @@
             <groupId>de.hellfirepvp</groupId>
             <artifactId>CustomMobs</artifactId>
             <version>${custommobs.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- InfernalMobs -->
@@ -609,6 +615,7 @@
             <groupId>io.hotmail.com.jacob_vejvoda.infernal_mobs.infernal_mob</groupId>
             <artifactId>InfernalMobs</artifactId>
             <version>${InfernalMobs.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- MobArena -->
@@ -616,6 +623,7 @@
             <groupId>com.garbagemule</groupId>
             <artifactId>mobarena</artifactId>
             <version>${mobarena.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- ActionBarAPI -->
@@ -623,6 +631,7 @@
             <groupId>ActionBarAPI</groupId>
             <artifactId>ActionBarAPI</artifactId>
             <version>${ActionBarAPI.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- ActionAnnouncer -->
@@ -630,6 +639,7 @@
             <groupId>me.clip.actionannouncer.ActionAnnouncer</groupId>
             <artifactId>ActionAnnouncer</artifactId>
             <version>${ActionAnnouncer.version}</version>
+            <scope>provided</scope>
         </dependency>
 
 
@@ -664,6 +674,7 @@
             <groupId>com.massivecraft.massivecore</groupId>
             <artifactId>MassiveCore</artifactId>
             <version>${massivecore.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.massivecraft.factions</groupId>
@@ -677,6 +688,7 @@
             <groupId>Towny</groupId>
             <artifactId>Towny</artifactId>
             <version>${towny.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- Residence -->
@@ -684,6 +696,7 @@
             <groupId>com.bekvon.bukkit.residence.ResidenceCommandListener</groupId>
             <artifactId>Residence</artifactId>
             <version>${residence.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- PlacholdeAPI -->
@@ -699,6 +712,7 @@
             <groupId>org.black_ixx</groupId>
             <artifactId>BossShop</artifactId>
             <version>${bossshop.version}</version>
+            <scope>provided</scope>
         </dependency>
 
 
@@ -707,6 +721,7 @@
             <groupId>CrackShot</groupId>
             <artifactId>CrackShot</artifactId>
             <version>${crackshot.version}</version>
+            <scope>provided</scope>
         </dependency>
 
 

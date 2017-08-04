@@ -1,16 +1,21 @@
 package one.lindegaard.MobHunting.commands;
 
-import java.util.List;
-
+import one.lindegaard.MobHunting.Messages;
+import one.lindegaard.MobHunting.MobHunting;
+import one.lindegaard.MobHunting.update.UpdateStatus;
+import one.lindegaard.MobHunting.update.Updater;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
-import one.lindegaard.MobHunting.Messages;
-import one.lindegaard.MobHunting.MobHunting;
-import one.lindegaard.MobHunting.update.Updater;
-import one.lindegaard.MobHunting.update.UpdateStatus;
+import java.util.List;
 
 public class VersionCommand implements ICommand {
+	private Messages messages;
+
+	public VersionCommand(Messages messages) {
+		this.messages = messages;
+	}
+
 	@Override
 	public String getName() {
 		return "version";
@@ -34,7 +39,7 @@ public class VersionCommand implements ICommand {
 
 	@Override
 	public String getDescription() {
-		return Messages.getString("mobhunting.commands.version.description");
+		return messages.getString("mobhunting.commands.version.description");
 	}
 
 	@Override
@@ -51,12 +56,12 @@ public class VersionCommand implements ICommand {
 	public boolean onCommand(CommandSender sender, String label, String[] args) {
 
 		sender.sendMessage(ChatColor.GREEN
-				+ Messages.getString(
+				+ messages.getString(
 						"mobhunting.commands.version.currentversion","currentversion",
 						MobHunting.getInstance().getDescription().getVersion()));
 		if (Updater.getUpdateAvailable() == UpdateStatus.AVAILABLE)
 			sender.sendMessage(ChatColor.GREEN
-					+ Messages.getString(
+					+ messages.getString(
 							"mobhunting.commands.version.newversion","newversion",
 							Updater.getBukkitUpdate().getVersionName()));
 		if (sender.hasPermission("mobhunting.update")) {

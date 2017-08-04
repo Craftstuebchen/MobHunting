@@ -1,26 +1,27 @@
 package one.lindegaard.MobHunting.rewards;
 
+import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.properties.Property;
+import one.lindegaard.MobHunting.ConfigManager;
+import org.bukkit.ChatColor;
+import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SkullMeta;
+
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.UUID;
 
-import org.bukkit.Material;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.SkullMeta;
-import org.bukkit.ChatColor;
-
-import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.properties.Property;
-
-import one.lindegaard.MobHunting.MobHunting;
-
 public class CustomItems {
 
     private RewardManager rewardManager;
+    private ConfigManager configManager;
 
-    public CustomItems() {
+    public CustomItems(RewardManager rewardManager, ConfigManager configManager) {
+        this.rewardManager = rewardManager;
+        this.configManager = configManager;
     }
 
 
@@ -88,10 +89,10 @@ public class CustomItems {
                         "Hidden:" + mPlayerUUID, money == 0 ? "Hidden:" : "Hidden:" + uniqueRewardUuid)));
         if (money == 0)
             skullMeta.setDisplayName(
-                    ChatColor.valueOf(MobHunting.getConfigManager().dropMoneyOnGroundTextColor) + mDisplayName);
+                    ChatColor.valueOf(configManager.dropMoneyOnGroundTextColor) + mDisplayName);
         else
-            skullMeta.setDisplayName(ChatColor.valueOf(MobHunting.getConfigManager().dropMoneyOnGroundTextColor)
-                    + mDisplayName + " (" + MobHunting.getRewardManager().format(money) + " )");
+            skullMeta.setDisplayName(ChatColor.valueOf(configManager.dropMoneyOnGroundTextColor)
+                    + mDisplayName + " (" + rewardManager.format(money) + " )");
 
         skull.setItemMeta(skullMeta);
         return skull;

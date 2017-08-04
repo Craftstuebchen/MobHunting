@@ -1,9 +1,5 @@
 package one.lindegaard.MobHunting.commands;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.npc.NPC;
 import net.citizensnpcs.api.npc.NPCRegistry;
@@ -17,7 +13,6 @@ import one.lindegaard.MobHunting.npc.MasterMobHunterManager;
 import one.lindegaard.MobHunting.npc.MasterMobHunterTrait;
 import one.lindegaard.MobHunting.storage.TimePeriod;
 import one.lindegaard.MobHunting.util.Misc;
-
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.block.Block;
@@ -26,6 +21,10 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 public class NpcCommand implements ICommand, Listener {
 
@@ -200,7 +199,7 @@ public class NpcCommand implements ICommand, Listener {
 				NPCRegistry registry = CitizensAPI.getNPCRegistry();
 				npc = registry.createNPC(EntityType.PLAYER, "MasterMobHunter");
 				npc.addTrait(MasterMobHunterTrait.class);
-				masterMobHunterManager.put(npc.getId(), new MasterMobHunter(npc.getId(), statType, period, 0, rank));
+				masterMobHunterManager.put(npc.getId(), new MasterMobHunter(npc.getId(), statType, masterMobHunterSign, period, 0, rank));
 				npc.spawn(p.getLocation());
 				masterMobHunterManager.update(npc);
 				sender.sendMessage(

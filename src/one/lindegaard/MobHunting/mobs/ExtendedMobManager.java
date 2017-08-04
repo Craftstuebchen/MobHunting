@@ -1,50 +1,59 @@
 package one.lindegaard.MobHunting.mobs;
 
+import one.lindegaard.MobHunting.Messages;
+import one.lindegaard.MobHunting.compatibility.*;
+import one.lindegaard.MobHunting.storage.DataStoreException;
+import one.lindegaard.MobHunting.storage.IDataStore;
+import one.lindegaard.MobHunting.util.Misc;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.entity.Entity;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.command.ConsoleCommandSender;
-import org.bukkit.entity.Entity;
-
-import one.lindegaard.MobHunting.Messages;
-import one.lindegaard.MobHunting.MobHunting;
-import one.lindegaard.MobHunting.compatibility.CitizensCompat;
-import one.lindegaard.MobHunting.compatibility.CustomMobsCompat;
-import one.lindegaard.MobHunting.compatibility.InfernalMobsCompat;
-import one.lindegaard.MobHunting.compatibility.MysteriousHalloweenCompat;
-import one.lindegaard.MobHunting.compatibility.MythicMobsCompat;
-import one.lindegaard.MobHunting.compatibility.SmartGiantsCompat;
-import one.lindegaard.MobHunting.compatibility.TARDISWeepingAngelsCompat;
-import one.lindegaard.MobHunting.storage.DataStoreException;
-import one.lindegaard.MobHunting.util.Misc;
-
 public class ExtendedMobManager {
 
 	private static HashMap<Integer, ExtendedMob> mobs = new HashMap<Integer, ExtendedMob>();
 
-	public ExtendedMobManager() {
-		updateExtendedMobs();
+	private IDataStore iDataStore;
+	private Messages messages;
+	private CustomMobsCompat customMobsCompat;
+	private TARDISWeepingAngelsCompat tARDISWeepingAngelsCompat;
+	private MysteriousHalloweenCompat mysteriousHalloweenCompat;
+    private MythicMobsCompat mythicMobsCompat;
+    private CitizensCompat citizensCompat;
+
+    public ExtendedMobManager(IDataStore iDataStore, Messages messages, CustomMobsCompat customMobsCompat,
+                              TARDISWeepingAngelsCompat tARDISWeepingAngelsCompat, MysteriousHalloweenCompat mysteriousHalloweenCompat, MythicMobsCompat mythicMobsCompat, CitizensCompat citizensCompat) {
+		this.iDataStore = iDataStore;
+		this.messages = messages;
+		this.customMobsCompat = customMobsCompat;
+		this.tARDISWeepingAngelsCompat = tARDISWeepingAngelsCompat;
+		this.mysteriousHalloweenCompat = mysteriousHalloweenCompat;
+        this.mythicMobsCompat = mythicMobsCompat;
+        this.citizensCompat = citizensCompat;
+        updateExtendedMobs();
 	}
 
 	public void updateExtendedMobs() {
-		MobHunting.getStoreManager().insertMissingVanillaMobs();
-		if (CitizensCompat.isSupported())
-			MobHunting.getStoreManager().insertMissingCitizensMobs();
-		if (MythicMobsCompat.isSupported())
-			MobHunting.getStoreManager().insertMissingMythicMobs();
-		if (CustomMobsCompat.isSupported())
-			MobHunting.getStoreManager().insertCustomMobs();
-		if (TARDISWeepingAngelsCompat.isSupported())
-			MobHunting.getStoreManager().insertTARDISWeepingAngelsMobs();
-		if (MysteriousHalloweenCompat.isSupported())
-			MobHunting.getStoreManager().insertMysteriousHalloweenMobs();
+		iDataStore.insertMissingVanillaMobs();
+		if (citizensCompat.isSupported())
+			iDataStore.insertMissingCitizensMobs();
+		if (mythicMobsCompat.isSupported())
+			iDataStore.insertMissingMythicMobs();
+		if (customMobsCompat.isSupported())
+			iDataStore.insertCustomMobs();
+		if (tARDISWeepingAngelsCompat.isSupported())
+			iDataStore.insertTARDISWeepingAngelsMobs();
+		if (mysteriousHalloweenCompat.isSupported())
+			iDataStore.insertMysteriousHalloweenMobs();
 		if (SmartGiantsCompat.isSupported())
-			MobHunting.getStoreManager().insertSmartGiants();
+			iDataStore.insertSmartGiants();
 		// Not needed
 		// if (InfernalMobsCompat.isSupported())
 		// MobHunting.getStoreManager().insertInfernalMobs();
@@ -52,7 +61,7 @@ public class ExtendedMobManager {
 		Set<ExtendedMob> set = new HashSet<ExtendedMob>();
 
 		try {
-			set = (HashSet<ExtendedMob>) MobHunting.getStoreManager().loadMobs();
+			set = iDataStore.loadMobs();
 		} catch (DataStoreException e) {
 			Bukkit.getLogger().severe("[MobHunting] Could not load data from mh_Mobs");
 			e.printStackTrace();
@@ -61,32 +70,32 @@ public class ExtendedMobManager {
 		int n = 0;
 		Iterator<ExtendedMob> mobset = set.iterator();
 		while (mobset.hasNext()) {
-			ExtendedMob mob = (ExtendedMob) mobset.next();
+			ExtendedMob mob = mobset.next();
 			switch (mob.getMobPlugin()) {
 			case MythicMobs:
-				if (!MythicMobsCompat.isSupported() || MythicMobsCompat.isDisabledInConfig()
-						|| !MythicMobsCompat.isMythicMob(mob.getMobtype()))
+				if (!mythicMobsCompat.isSupported() || mythicMobsCompat.isDisabledInConfig()
+						|| !mythicMobsCompat.isMythicMob(mob.getMobtype()))
 					continue;
 				break;
 
 			case CustomMobs:
-				if (!CustomMobsCompat.isSupported() || CustomMobsCompat.isDisabledInConfig())
+				if (!customMobsCompat.isSupported() || customMobsCompat.isDisabledInConfig())
 					continue;
 				break;
 
 			case TARDISWeepingAngels:
-				if (!TARDISWeepingAngelsCompat.isSupported() || TARDISWeepingAngelsCompat.isDisabledInConfig())
+				if (!tARDISWeepingAngelsCompat.isSupported() || tARDISWeepingAngelsCompat.isDisabledInConfig())
 					continue;
 				break;
 
 			case Citizens:
-				if (!CitizensCompat.isSupported() || CitizensCompat.isDisabledInConfig()
-						|| !CitizensCompat.isSentryOrSentinelOrSentries(mob.getMobtype()))
+				if (!citizensCompat.isSupported() || citizensCompat.isDisabledInConfig()
+						|| !citizensCompat.isSentryOrSentinelOrSentries(mob.getMobtype()))
 					continue;
 				break;
 
 			case MysteriousHalloween:
-				if (!MysteriousHalloweenCompat.isSupported() || MysteriousHalloweenCompat.isDisabledInConfig())
+				if (!mysteriousHalloweenCompat.isSupported() || mysteriousHalloweenCompat.isDisabledInConfig())
 					continue;
 				break;
 
@@ -114,7 +123,7 @@ public class ExtendedMobManager {
 				mobs.put(mob.getMob_id(), mob);
 			}
 		}
-		Messages.debug("%s mobs was loaded into memory. Total mobs=%s", n, mobs.size());
+		messages.debug("%s mobs was loaded into memory. Total mobs=%s", n, mobs.size());
 	}
 
 	public ExtendedMob getExtendedMobFromMobID(int i) {
@@ -128,7 +137,7 @@ public class ExtendedMobManager {
 	public int getMobIdFromMobTypeAndPluginID(String mobtype, MobPlugin mobPlugin) {
 		Iterator<Entry<Integer, ExtendedMob>> mobset = mobs.entrySet().iterator();
 		while (mobset.hasNext()) {
-			ExtendedMob mob = (ExtendedMob) mobset.next().getValue();
+			ExtendedMob mob = mobset.next().getValue();
 			if (mob.getMobPlugin().equals(mobPlugin) && mob.getMobtype().equalsIgnoreCase(mobtype))
 				return mob.getMob_id();
 		}
@@ -142,21 +151,21 @@ public class ExtendedMobManager {
 		MobPlugin mobPlugin;
 		String mobtype;
 
-		if (MythicMobsCompat.isMythicMob(entity)) {
+		if (mythicMobsCompat.isMythicMob(entity)) {
 			mobPlugin = MobPlugin.MythicMobs;
-			mobtype = MythicMobsCompat.getMythicMobType(entity);
-		} else if (CitizensCompat.isNPC(entity)) {
+			mobtype = mythicMobsCompat.getMythicMobType(entity);
+		} else if (citizensCompat.isNPC(entity)) {
 			mobPlugin = MobPlugin.Citizens;
-			mobtype = String.valueOf(CitizensCompat.getNPCId(entity));
-		} else if (TARDISWeepingAngelsCompat.isWeepingAngelMonster(entity)) {
+			mobtype = String.valueOf(citizensCompat.getNPCId(entity));
+		} else if (tARDISWeepingAngelsCompat.isWeepingAngelMonster(entity)) {
 			mobPlugin = MobPlugin.TARDISWeepingAngels;
-			mobtype = TARDISWeepingAngelsCompat.getWeepingAngelMonsterType(entity).name();
-		} else if (CustomMobsCompat.isCustomMob(entity)) {
+			mobtype = tARDISWeepingAngelsCompat.getWeepingAngelMonsterType(entity).name();
+		} else if (customMobsCompat.isCustomMob(entity)) {
 			mobPlugin = MobPlugin.CustomMobs;
-			mobtype = CustomMobsCompat.getCustomMobType(entity);
-		} else if (MysteriousHalloweenCompat.isMysteriousHalloween(entity)) {
+			mobtype = customMobsCompat.getCustomMobType(entity);
+		} else if (mysteriousHalloweenCompat.isMysteriousHalloween(entity)) {
 			mobPlugin = MobPlugin.MysteriousHalloween;
-			mobtype = MysteriousHalloweenCompat.getMysteriousHalloweenType(entity).name();
+			mobtype = mysteriousHalloweenCompat.getMysteriousHalloweenType(entity).name();
 		} else if (SmartGiantsCompat.isSmartGiants(entity)) {
 			mobPlugin = MobPlugin.SmartGiants;
 			mobtype = SmartGiantsCompat.getSmartGiantsMobType(entity);
@@ -166,7 +175,7 @@ public class ExtendedMobManager {
 			if (mob != null)
 				mobtype = mob.name();
 			else{
-				Messages.debug("unhandled entity %s", entity.getType());
+				messages.debug("unhandled entity %s", entity.getType());
 				mobtype = "";
 			}
 		} else {
@@ -179,7 +188,7 @@ public class ExtendedMobManager {
 				mobtype = "";
 		}
 		mob_id = getMobIdFromMobTypeAndPluginID(mobtype, mobPlugin);
-		return new ExtendedMob(mob_id, mobPlugin, mobtype);
+		return new ExtendedMob(mob_id, mobPlugin, mobtype, customMobsCompat, messages, mythicMobsCompat, citizensCompat, tARDISWeepingAngelsCompat, mysteriousHalloweenCompat);
 	}
 
 	// This is only used to get a "random" mob_id stored when an Achievement is
@@ -198,6 +207,6 @@ public class ExtendedMobManager {
 
 	public String getTranslatedName() {
 		return "";
-	};
+	}
 
 }

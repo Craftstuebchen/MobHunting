@@ -1,16 +1,19 @@
 package one.lindegaard.MobHunting.modifier;
 
+import one.lindegaard.MobHunting.ConfigManager;
+import one.lindegaard.MobHunting.DamageInformation;
+import one.lindegaard.MobHunting.HuntData;
+import one.lindegaard.MobHunting.Messages;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
-import one.lindegaard.MobHunting.DamageInformation;
-import one.lindegaard.MobHunting.HuntData;
-import one.lindegaard.MobHunting.Messages;
-import one.lindegaard.MobHunting.MobHunting;
+public class FlyingPenalty extends IModifier {
 
-public class FlyingPenalty implements IModifier {
+	public FlyingPenalty(ConfigManager configManager) {
+		super(configManager);
+	}
 
 	@Override
 	public String getName() {
@@ -20,7 +23,7 @@ public class FlyingPenalty implements IModifier {
 	@Override
 	public double getMultiplier(Entity deadEntity, Player killer, HuntData data, DamageInformation extraInfo,
 			EntityDamageByEntityEvent lastDamageCause) {
-		return MobHunting.getConfigManager().penaltyFlying;
+		return configManager.penaltyFlying;
 	}
 
 	@Override

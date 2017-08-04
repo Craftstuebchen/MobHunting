@@ -1,21 +1,21 @@
 package one.lindegaard.MobHunting.compatibility;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-
-import de.robingrether.idisguise.api.*;
-import de.robingrether.idisguise.disguise.*;
+import de.robingrether.idisguise.api.DisguiseAPI;
+import de.robingrether.idisguise.disguise.Disguise;
 import de.robingrether.idisguise.disguise.DisguiseType;
+import one.lindegaard.MobHunting.ConfigManager;
 import one.lindegaard.MobHunting.MobHunting;
 import one.lindegaard.MobHunting.util.Misc;
-
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 public class IDisguiseCompat implements Listener {
 
@@ -67,7 +67,7 @@ public class IDisguiseCompat implements Listener {
 		aggresiveList[n++] = DisguiseType.ZOMBIE_VILLAGER;
 		aggresiveList[n++] = DisguiseType.SHULKER;
 	}
-	private static final Set<DisguiseType> aggresiveMobs = new HashSet<DisguiseType>(Arrays.asList(aggresiveList));
+	private final Set<DisguiseType> aggresiveMobs = new HashSet<DisguiseType>(Arrays.asList(aggresiveList));
 
 	static {
 		int n2 = 0;
@@ -109,8 +109,8 @@ public class IDisguiseCompat implements Listener {
 	}
 	private static final Set<DisguiseType> otherDisguiseTypes = new HashSet<DisguiseType>(Arrays.asList(otherList));
 
-	public IDisguiseCompat() {
-		if (MobHunting.getConfigManager().disableIntegrationIDisguise) {
+	public IDisguiseCompat(ConfigManager configManager) {
+		if (configManager.disableIntegrationIDisguise) {
 			Bukkit.getLogger().info("[MobHunting] Compatibility with iDisguise is disabled in config.yml");
 		} else {
 			mPlugin = Bukkit.getServer().getPluginManager().getPlugin("iDisguise");
@@ -132,34 +132,34 @@ public class IDisguiseCompat implements Listener {
 		return mPlugin;
 	}
 
-	public static boolean isSupported() {
+	public  boolean isSupported() {
 		return supported;
 	}
 
-	public static boolean isDisguised(Entity entity) {
+	public  boolean isDisguised(Entity entity) {
 		if (entity instanceof Player)
 			return api.isDisguised((OfflinePlayer) entity);
 		else
 			return false;
 	}
 
-	public static Disguise getDisguise(Entity entity) {
+	public  Disguise getDisguise(Entity entity) {
 		if (entity instanceof Player)
 			return api.getDisguise((OfflinePlayer) entity);
 		else
 			return null;
 	}
 
-	public static void disguisePlayer(Player player, Disguise disguise) {
+	public  void disguisePlayer(Player player, Disguise disguise) {
 		api.disguise(player, disguise);
 	}
 
-	public static void undisguisePlayer(Entity entity) {
+	public  void undisguisePlayer(Entity entity) {
 		if (entity instanceof Player)
 			api.undisguise((Player) entity);
 	}
 
-	public static boolean isAggresiveDisguise(Entity entity) {
+	public boolean isAggresiveDisguise(Entity entity) {
 		Disguise d = getDisguise(entity);
 		if (aggresiveMobs.contains(d.getType()))
 			return true;
@@ -167,7 +167,7 @@ public class IDisguiseCompat implements Listener {
 			return false;
 	}
 
-	public static boolean isPassiveDisguise(Entity entity) {
+	public  boolean isPassiveDisguise(Entity entity) {
 		Disguise d = getDisguise(entity);
 		if (passiveMobs.contains(d.getType()))
 			return true;
@@ -175,7 +175,7 @@ public class IDisguiseCompat implements Listener {
 			return false;
 	}
 
-	public static boolean isOtherDisguise(Entity entity) {
+	public  boolean isOtherDisguise(Entity entity) {
 		Disguise d = getDisguise(entity);
 		if (otherDisguiseTypes.contains(d.getType()))
 			return true;
@@ -183,7 +183,7 @@ public class IDisguiseCompat implements Listener {
 			return false;
 	}
 
-	public static boolean isPlayerDisguise(Entity entity) {
+	public  boolean isPlayerDisguise(Entity entity) {
 		Disguise d = getDisguise(entity);
 		if (d.getType().equals(DisguiseType.PLAYER))
 			return true;

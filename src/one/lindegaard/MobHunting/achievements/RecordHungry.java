@@ -1,5 +1,10 @@
 package one.lindegaard.MobHunting.achievements;
 
+import one.lindegaard.MobHunting.ConfigManager;
+import one.lindegaard.MobHunting.Messages;
+import one.lindegaard.MobHunting.MobHuntingManager;
+import one.lindegaard.MobHunting.events.MobHuntKillEvent;
+import one.lindegaard.MobHunting.mobs.ExtendedMobManager;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.entity.Arrow;
@@ -12,11 +17,14 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.inventory.ItemStack;
 
-import one.lindegaard.MobHunting.Messages;
-import one.lindegaard.MobHunting.MobHunting;
-import one.lindegaard.MobHunting.events.MobHuntKillEvent;
+public class RecordHungry extends Achievement implements Listener {
 
-public class RecordHungry implements Achievement, Listener {
+	private MobHuntingManager mobHuntingManager;
+
+	public RecordHungry(ConfigManager configManager, AchievementManager achievementManager, ExtendedMobManager extendedMobManager, MobHuntingManager mobHuntingManager) {
+		super(configManager, achievementManager, extendedMobManager, messages);
+		this.mobHuntingManager = mobHuntingManager;
+	}
 
 	@Override
 	public String getName() {
@@ -35,14 +43,14 @@ public class RecordHungry implements Achievement, Listener {
 
 	@Override
 	public double getPrize() {
-		return MobHunting.getConfigManager().specialRecordHungry;
+		return configManager.specialRecordHungry;
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onDeath(MobHuntKillEvent event) {
 		if (!(event.getKilledEntity() instanceof Creeper)
-				|| !MobHunting.getMobHuntingManager().isHuntEnabledInWorld(event.getKilledEntity().getWorld())
-				|| (MobHunting.getConfigManager().getBaseKillPrize(event.getKilledEntity()) <= 0))
+				|| !mobHuntingManager.isHuntEnabledInWorld(event.getKilledEntity().getWorld())
+				|| (configManager.getBaseKillPrize(event.getKilledEntity()) <= 0))
 			return;
 
 		Creeper killed = (Creeper) event.getKilledEntity();
@@ -59,21 +67,21 @@ public class RecordHungry implements Achievement, Listener {
 				Player target = (Player) killed.getTarget();
 
 				if (skele.getTarget() == target && target.getGameMode() != GameMode.CREATIVE
-						&& MobHunting.getMobHuntingManager().isHuntEnabled(target))
-					MobHunting.getAchievementManager().awardAchievement(this, target,
-							MobHunting.getExtendedMobManager().getExtendedMobFromEntity(event.getKilledEntity()));
+						&& mobHuntingManager.isHuntEnabled(target))
+					achievementManager.awardAchievement(this, target,
+							extendedMobManager.getExtendedMobFromEntity(event.getKilledEntity()));
 			}
 		}
 	}
 
 	@Override
 	public String getPrizeCmd() {
-		return MobHunting.getConfigManager().specialRecordHungryCmd;
+		return configManager.specialRecordHungryCmd;
 	}
 
 	@Override
 	public String getPrizeCmdDescription() {
-		return MobHunting.getConfigManager().specialRecordHungryCmdDesc;
+		return configManager.specialRecordHungryCmdDesc;
 	}
 
 	@Override

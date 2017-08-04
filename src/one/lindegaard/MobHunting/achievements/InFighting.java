@@ -1,5 +1,11 @@
 package one.lindegaard.MobHunting.achievements;
 
+import one.lindegaard.MobHunting.ConfigManager;
+import one.lindegaard.MobHunting.DamageInformation;
+import one.lindegaard.MobHunting.Messages;
+import one.lindegaard.MobHunting.MobHuntingManager;
+import one.lindegaard.MobHunting.events.MobHuntKillEvent;
+import one.lindegaard.MobHunting.mobs.ExtendedMobManager;
 import org.bukkit.Material;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Player;
@@ -10,12 +16,14 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.inventory.ItemStack;
 
-import one.lindegaard.MobHunting.DamageInformation;
-import one.lindegaard.MobHunting.Messages;
-import one.lindegaard.MobHunting.MobHunting;
-import one.lindegaard.MobHunting.events.MobHuntKillEvent;
+public class InFighting extends Achievement implements Listener {
 
-public class InFighting implements Achievement, Listener {
+	private MobHuntingManager mobHuntingManager;
+
+	public InFighting(ConfigManager configManager, AchievementManager achievementManager, ExtendedMobManager extendedMobManager, MobHuntingManager mobHuntingManager) {
+		super(configManager, achievementManager, extendedMobManager, messages);
+		this.mobHuntingManager = mobHuntingManager;
+	}
 
 	@Override
 	public String getName() {
@@ -34,14 +42,14 @@ public class InFighting implements Achievement, Listener {
 
 	@Override
 	public double getPrize() {
-		return MobHunting.getConfigManager().specialInfighting;
+		return configManager.specialInfighting;
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onKill(MobHuntKillEvent event) {
 		if (!(event.getKilledEntity() instanceof Skeleton)
-				|| !MobHunting.getMobHuntingManager().isHuntEnabledInWorld(event.getKilledEntity().getWorld())
-				|| MobHunting.getConfigManager().getBaseKillPrize(event.getKilledEntity()) <= 0)
+				|| !mobHuntingManager.isHuntEnabledInWorld(event.getKilledEntity().getWorld())
+				|| configManager.getBaseKillPrize(event.getKilledEntity()) <= 0)
 			return;
 
 		Skeleton killed = (Skeleton) event.getKilledEntity();
@@ -56,8 +64,8 @@ public class InFighting implements Achievement, Listener {
 
 			if (killed.getTarget() == skele && skele.getTarget() == killed) {
 				DamageInformation a, b;
-				a = MobHunting.getMobHuntingManager().getDamageInformation(killed);
-				b = MobHunting.getMobHuntingManager().getDamageInformation(skele);
+				a = mobHuntingManager.getDamageInformation(killed);
+				b = mobHuntingManager.getDamageInformation(skele);
 
 				Player initiator = null;
 				if (a != null)
@@ -66,21 +74,21 @@ public class InFighting implements Achievement, Listener {
 				if (b != null && initiator == null)
 					initiator = b.getAttacker();
 
-				if (initiator != null && MobHunting.getMobHuntingManager().isHuntEnabled(initiator))
-					MobHunting.getAchievementManager().awardAchievement(this, initiator,
-							MobHunting.getExtendedMobManager().getExtendedMobFromEntity(event.getKilledEntity()));
+				if (initiator != null && mobHuntingManager.isHuntEnabled(initiator))
+					achievementManager.awardAchievement(this, initiator,
+							extendedMobManager.getExtendedMobFromEntity(event.getKilledEntity()));
 			}
 		}
 	}
 
 	@Override
 	public String getPrizeCmd() {
-		return MobHunting.getConfigManager().specialInfightingCmd;
+		return configManager.specialInfightingCmd;
 	}
 
 	@Override
 	public String getPrizeCmdDescription() {
-		return MobHunting.getConfigManager().specialInfightingCmdDesc;
+		return configManager.specialInfightingCmdDesc;
 	}
 
 	@Override

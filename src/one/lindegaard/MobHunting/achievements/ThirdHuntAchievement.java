@@ -1,82 +1,81 @@
 package one.lindegaard.MobHunting.achievements;
 
+import one.lindegaard.MobHunting.ConfigManager;
+import one.lindegaard.MobHunting.Messages;
+import one.lindegaard.MobHunting.mobs.ExtendedMob;
+import one.lindegaard.MobHunting.mobs.ExtendedMobManager;
+import one.lindegaard.MobHunting.mobs.MobPlugin;
 import org.bukkit.inventory.ItemStack;
 
-import one.lindegaard.MobHunting.Messages;
-import one.lindegaard.MobHunting.MobHunting;
-import one.lindegaard.MobHunting.mobs.ExtendedMob;
-import one.lindegaard.MobHunting.mobs.MobPlugin;
+public class ThirdHuntAchievement extends ProgressAchievement {
 
-public class ThirdHuntAchievement implements ProgressAchievement {
-	private ExtendedMob mExtendedMob;
-
-	public ThirdHuntAchievement(ExtendedMob extendedMob) {
-		mExtendedMob = extendedMob;
+	public ThirdHuntAchievement(ConfigManager configManager, AchievementManager achievementManager, ExtendedMobManager extendedMobManager, ExtendedMob extendedMob) {
+		super(configManager, achievementManager, extendedMobManager, extendedMob);
 	}
 
 	@Override
 	public String getName() {
-		return Messages.getString("achievements.hunter.3.name", "mob", mExtendedMob.getFriendlyName());
+		return Messages.getString("achievements.hunter.3.name", "mob", extendedMob.getFriendlyName());
 	}
 
 	@Override
 	public String getID() {
-		if (mExtendedMob.getMobPlugin() == MobPlugin.Minecraft)
-			return "hunting-level3-" + mExtendedMob.getMobName().toLowerCase();
+		if (extendedMob.getMobPlugin() == MobPlugin.Minecraft)
+			return "hunting-level3-" + extendedMob.getMobName().toLowerCase();
 		else
-			return mExtendedMob.getMobPlugin().name().toLowerCase() + "-hunting-level3-" + mExtendedMob.getMobtype().toLowerCase();
+			return extendedMob.getMobPlugin().name().toLowerCase() + "-hunting-level3-" + extendedMob.getMobtype().toLowerCase();
 
 	}
 
 	@Override
 	public String getDescription() {
 		return Messages.getString("achievements.hunter.3.description", "count", getNextLevel(), "mob",
-				mExtendedMob.getFriendlyName());
+				extendedMob.getFriendlyName());
 	}
 
 	@Override
 	public double getPrize() {
-		return MobHunting.getConfigManager().specialHunter3;
+		return configManager.specialHunter3;
 	}
 
 	@Override
 	public int getNextLevel() {
-		return mExtendedMob.getProgressAchievementLevel1() * 5;
+		return extendedMob.getProgressAchievementLevel1() * 5;
 	}
 
 	@Override
 	public String inheritFrom() {
-		if (mExtendedMob.getMobPlugin() == MobPlugin.Minecraft)
-			return "hunting-level2-" + mExtendedMob.getMobtype().toLowerCase();
+		if (extendedMob.getMobPlugin() == MobPlugin.Minecraft)
+			return "hunting-level2-" + extendedMob.getMobtype().toLowerCase();
 		else
-			return mExtendedMob.getMobPlugin().name().toLowerCase() + "-hunting-level2-" + mExtendedMob.getMobtype().toLowerCase();
+			return extendedMob.getMobPlugin().name().toLowerCase() + "-hunting-level2-" + extendedMob.getMobtype().toLowerCase();
 	}
 
 	@Override
 	public String nextLevelId() {
-		if (mExtendedMob.getMobPlugin() == MobPlugin.Minecraft)
-			return "hunting-level4-" + mExtendedMob.getMobtype().toLowerCase();
+		if (extendedMob.getMobPlugin() == MobPlugin.Minecraft)
+			return "hunting-level4-" + extendedMob.getMobtype().toLowerCase();
 		else
-			return mExtendedMob.getMobPlugin().name().toLowerCase() + "-hunting-level4-" + mExtendedMob.getMobtype().toLowerCase();
+			return extendedMob.getMobPlugin().name().toLowerCase() + "-hunting-level4-" + extendedMob.getMobtype().toLowerCase();
 	}
 
 	@Override
 	public String getPrizeCmd() {
-		return MobHunting.getConfigManager().specialHunter3Cmd;
+		return configManager.specialHunter3Cmd;
 	}
 
 	@Override
 	public String getPrizeCmdDescription() {
-		return MobHunting.getConfigManager().specialHunter3CmdDesc;
+		return configManager.specialHunter3CmdDesc;
 	}
 
 	@Override
 	public ItemStack getSymbol() {
-		return mExtendedMob.getCustomHead(mExtendedMob.getMobName(), 3, 0);
+		return extendedMob.getCustomHead(extendedMob.getMobName(), 3, 0);
 	}
 
 	@Override
 	public ExtendedMob getExtendedMob() {
-		return mExtendedMob;
+		return extendedMob;
 	}
 }

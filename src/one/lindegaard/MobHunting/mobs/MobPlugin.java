@@ -1,58 +1,51 @@
 package one.lindegaard.MobHunting.mobs;
 
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.command.ConsoleCommandSender;
-
-import one.lindegaard.MobHunting.compatibility.CitizensCompat;
-import one.lindegaard.MobHunting.compatibility.CustomMobsCompat;
-import one.lindegaard.MobHunting.compatibility.InfernalMobsCompat;
-import one.lindegaard.MobHunting.compatibility.MysteriousHalloweenCompat;
-import one.lindegaard.MobHunting.compatibility.MythicMobsCompat;
-import one.lindegaard.MobHunting.compatibility.SmartGiantsCompat;
-import one.lindegaard.MobHunting.compatibility.TARDISWeepingAngelsCompat;
-
 public enum MobPlugin {
-	Minecraft("Minecraft", 0), MythicMobs("MythicMobs", 1), Citizens("Citizens", 2), TARDISWeepingAngels(
-			"TARDISWeepingAngels", 3), CustomMobs("CustomMobs", 4), MysteriousHalloween("MysteriousHalloween",
-					5), SmartGiants("SmartGiants", 6), InfernalMobs("InfernalMobs", 7);
 
-	private final String name;
-	private final Integer id;
 
-	private MobPlugin(String name, Integer id) {
-		this.name = name;
-		this.id = id;
-	}
+    // todo supported returns always true
 
-	public Integer getId() {
-		return id;
-	}
+    Minecraft("Minecraft", 0), MythicMobs("MythicMobs", 1), Citizens("Citizens", 2), TARDISWeepingAngels(
+            "TARDISWeepingAngels", 3), CustomMobs("CustomMobs", 4), MysteriousHalloween("MysteriousHalloween",
+            5), SmartGiants("SmartGiants", 6), InfernalMobs("InfernalMobs", 7);
 
-	public boolean equalsName(String otherName) {
-		return (otherName != null) && name.equals(otherName);
-	}
+    private final String name;
+    private final Integer id;
 
-	public String toString() {
-		return name;
-	}
+    private MobPlugin(String name, Integer id) {
+        this.name = name;
+        this.id = id;
+    }
 
-	public MobPlugin valueOf(int id) {
-		return MobPlugin.values()[id];
-	}
+    public Integer getId() {
+        return id;
+    }
 
-	public String getName() {
-		return name;
-	}
+    public boolean equalsName(String otherName) {
+        return (otherName != null) && name.equals(otherName);
+    }
 
-	public boolean isSupported() {
+    public String toString() {
+        return name;
+    }
+
+    public MobPlugin valueOf(int id) {
+        return MobPlugin.values()[id];
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public boolean isSupported() {
+        /*
 		switch (this) {
 		case Minecraft:
 			return true;
 		case Citizens:
 			return CitizensCompat.isSupported();
 		case CustomMobs:
-			return CustomMobsCompat.isSupported();
+			return customMobsCompat.isSupported();
 		case MysteriousHalloween:
 			return MysteriousHalloweenCompat.isSupported();
 		case MythicMobs:
@@ -68,6 +61,8 @@ public enum MobPlugin {
 			console.sendMessage(ChatColor.RED + "[MobHunting] Missing pluginType '" + this.name() + "' in MobPlugin");
 		}
 		return false;
-	}
+		*/
+        return true;
+    }
 
 }

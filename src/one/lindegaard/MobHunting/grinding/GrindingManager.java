@@ -1,16 +1,12 @@
 package one.lindegaard.MobHunting.grinding;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.Map.Entry;
-
+import one.lindegaard.MobHunting.ConfigManager;
+import one.lindegaard.MobHunting.Messages;
+import one.lindegaard.MobHunting.MobHunting;
+import one.lindegaard.MobHunting.mobs.ExtendedMob;
+import one.lindegaard.MobHunting.mobs.ExtendedMobManager;
+import one.lindegaard.MobHunting.mobs.MinecraftMob;
+import one.lindegaard.MobHunting.util.Misc;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -24,11 +20,10 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.world.WorldLoadEvent;
 import org.bukkit.event.world.WorldUnloadEvent;
 
-import one.lindegaard.MobHunting.Messages;
-import one.lindegaard.MobHunting.MobHunting;
-import one.lindegaard.MobHunting.mobs.ExtendedMob;
-import one.lindegaard.MobHunting.mobs.MinecraftMob;
-import one.lindegaard.MobHunting.util.Misc;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+import java.util.Map.Entry;
 
 public class GrindingManager implements Listener {
 
@@ -36,7 +31,17 @@ public class GrindingManager implements Listener {
 	private static HashMap<UUID, LinkedList<Area>> mWhitelistedAreas = new HashMap<>();
 	private static HashMap<Integer, GrindingInformation> killed_mobs = new HashMap<>();
 
+	private MobHunting plugin;
+
+	private ConfigManager configManager;
+	private ExtendedMobManager extendedMobManager;
+	private Messages messages;
+
 	public GrindingManager(MobHunting instance) {
+	    this.plugin=instance;
+	    this.configManager=plugin.getConfigManager();
+	    this.extendedMobManager=plugin.getExtendedMobManager();
+	    this.messages=instance.getMessages();
 		if (!loadWhitelist(instance))
 			throw new RuntimeException();
 		if (!loadBlacklist(instance))
@@ -56,7 +61,7 @@ public class GrindingManager implements Listener {
 	 * @param killed
 	 */
 	public void registerDeath(LivingEntity killed) {
-		GrindingInformation grindingInformation = new GrindingInformation(killed);
+		GrindingInformation grindingInformation = new GrindingInformation(configManager,killed);
 		if (!isGrindingArea(killed.getLocation()) && !isWhitelisted(killed.getLocation())) {
 			killed_mobs.put(killed.getEntityId(), grindingInformation);
 		}
@@ -70,12 +75,12 @@ public class GrindingManager implements Listener {
 	 *         area is detected as a Grinding Area
 	 */
 	public boolean isNetherGoldXPFarm(LivingEntity killed) {
-		ExtendedMob mob = MobHunting.getExtendedMobManager().getExtendedMobFromEntity(killed);
+		ExtendedMob mob = extendedMobManager.getExtendedMobFromEntity(killed);
 		int n = 0;
 		long now = System.currentTimeMillis();
-		final long seconds = MobHunting.getConfigManager().secondsToSearchForGrinding;
-		final double killRadius = MobHunting.getConfigManager().rangeToSearchForGrinding;
-		final int numberOfDeaths = MobHunting.getConfigManager().numberOfDeathsWhenSearchingForGringding;
+		final long seconds =configManager.secondsToSearchForGrinding;
+		final double killRadius = configManager.rangeToSearchForGrinding;
+		final int numberOfDeaths = configManager.numberOfDeathsWhenSearchingForGringding;
 		if (MinecraftMob.getMinecraftMobType(mob.getMobtype()) == MinecraftMob.ZombiePigman) {
 			if (killed.getLastDamageCause().getCause() == DamageCause.FALL) {
 				Area detectedGrindingArea = getGrindingArea(killed.getLocation());
@@ -103,7 +108,7 @@ public class GrindingManager implements Listener {
 								}
 							} else {
 								Area area = new Area(killed.getLocation(), killRadius, numberOfDeaths);
-								Messages.debug("Nether Gold XP Farm detected at (%s,%s,%s,%s)",
+								messages.debug("Nether Gold XP Farm detected at (%s,%s,%s,%s)",
 										area.getCenter().getWorld().getName(), area.getCenter().getBlockX(),
 										area.getCenter().getBlockY(), area.getCenter().getBlockZ());
 								registerKnownGrindingSpot(area);
@@ -112,7 +117,7 @@ public class GrindingManager implements Listener {
 						}
 					}
 				} else {
-					Messages.debug("This is a known grinding area: (%s,%s,%s,%s)",
+					messages.debug("This is a known grinding area: (%s,%s,%s,%s)",
 							detectedGrindingArea.getCenter().getWorld().getName(),
 							detectedGrindingArea.getCenter().getBlockX(), detectedGrindingArea.getCenter().getBlockY(),
 							detectedGrindingArea.getCenter().getBlockZ());
@@ -120,18 +125,18 @@ public class GrindingManager implements Listener {
 				}
 			}
 		}
-		Messages.debug("Farm detection: This was not a Nether Gold XP Farm (%s of %s mobs with last %s sec.)", n,
+		messages.debug("Farm detection: This was not a Nether Gold XP Farm (%s of %s mobs with last %s sec.)", n,
 				numberOfDeaths, seconds);
 		return false;
 	}
 
 	public boolean isOtherFarm(LivingEntity killed) {
-		ExtendedMob mob = MobHunting.getExtendedMobManager().getExtendedMobFromEntity(killed);
+		ExtendedMob mob = extendedMobManager.getExtendedMobFromEntity(killed);
 		int n = 0;
 		long now = System.currentTimeMillis();
-		final long seconds = MobHunting.getConfigManager().secondsToSearchForGrinding;
-		final double killRadius = MobHunting.getConfigManager().rangeToSearchForGrinding;
-		final int numberOfDeaths = MobHunting.getConfigManager().numberOfDeathsWhenSearchingForGringding;
+		final long seconds = configManager.secondsToSearchForGrinding;
+		final double killRadius = configManager.rangeToSearchForGrinding;
+		final int numberOfDeaths = configManager.numberOfDeathsWhenSearchingForGringding;
 		if (MinecraftMob.getMinecraftMobType(mob.getMobtype()) == MinecraftMob.ZombiePigman) {
 			if (killed.getLastDamageCause().getCause() == DamageCause.FALL) {
 				Area detectedGrindingArea = getGrindingArea(killed.getLocation());
@@ -158,7 +163,7 @@ public class GrindingManager implements Listener {
 								}
 							} else {
 								Area area = new Area(killed.getLocation(), killRadius, numberOfDeaths);
-								Messages.debug("Other Farm detected at (%s,%s,%s,%s)",
+                                messages.debug("Other Farm detected at (%s,%s,%s,%s)",
 										area.getCenter().getWorld().getName(), area.getCenter().getBlockX(),
 										area.getCenter().getBlockY(), area.getCenter().getBlockZ());
 								registerKnownGrindingSpot(area);
@@ -167,7 +172,7 @@ public class GrindingManager implements Listener {
 						}
 					}
 				} else {
-					Messages.debug("This is a known grinding area: (%s,%s,%s,%s)",
+                    messages.debug("This is a known grinding area: (%s,%s,%s,%s)",
 							detectedGrindingArea.getCenter().getWorld().getName(),
 							detectedGrindingArea.getCenter().getBlockX(), detectedGrindingArea.getCenter().getBlockY(),
 							detectedGrindingArea.getCenter().getBlockZ());
@@ -175,7 +180,7 @@ public class GrindingManager implements Listener {
 				}
 			}
 		}
-		Messages.debug("Farm detection: This was not a Farm (%s of %s mobs with last %s sec.)", n, numberOfDeaths,
+        messages.debug("Farm detection: This was not a Farm (%s of %s mobs with last %s sec.)", n, numberOfDeaths,
 				seconds);
 		return false;
 	}
@@ -305,7 +310,7 @@ public class GrindingManager implements Listener {
 		for (Area area : areas) {
 			if (area.getCenter().getWorld().equals(location.getWorld())) {
 				if (area.getCenter().distance(location) < area.getRange()) {
-					Messages.debug("Found a blacklisted grinding area = %s, range=%s", area.getCenter(),
+                    messages.debug("Found a blacklisted grinding area = %s, range=%s", area.getCenter(),
 							area.getRange());
 					return area;
 				}
@@ -342,13 +347,9 @@ public class GrindingManager implements Listener {
 	}
 
 	public void blacklistArea(Area newArea) {
-		LinkedList<Area> areas = mKnownGrindingAreas.get(newArea.getCenter().getWorld().getUID());
-		if (areas == null) {
-			areas = new LinkedList<Area>();
-			mKnownGrindingAreas.put(newArea.getCenter().getWorld().getUID(), areas);
-		}
+        LinkedList<Area> areas = mKnownGrindingAreas.computeIfAbsent(newArea.getCenter().getWorld().getUID(), k -> new LinkedList<>());
 
-		for (Area area : areas) {
+        for (Area area : areas) {
 			if (newArea.getCenter().getWorld().equals(area.getCenter().getWorld())) {
 				double dist = newArea.getCenter().distance(area.getCenter());
 
@@ -486,7 +487,7 @@ public class GrindingManager implements Listener {
 		for (Area area : areas) {
 			if (area.getCenter().getWorld().equals(location.getWorld())) {
 				if (area.getCenter().distance(location) < area.getRange()) {
-					Messages.debug("Found a whitelisted area = %s, range=%s", area.getCenter(), area.getRange());
+                    messages.debug("Found a whitelisted area = %s, range=%s", area.getCenter(), area.getRange());
 					return area;
 				}
 			}
@@ -554,7 +555,7 @@ public class GrindingManager implements Listener {
 	 */
 	public boolean isGrindingDisabledInWorld(World world) {
 		if (world != null)
-			for (String worldName : MobHunting.getConfigManager().disableGrindingDetectionInWorlds) {
+			for (String worldName : configManager.disableGrindingDetectionInWorlds) {
 				if (world.getName().equalsIgnoreCase(worldName))
 					return true;
 			}

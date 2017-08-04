@@ -1,32 +1,39 @@
 package one.lindegaard.MobHunting.modifier;
 
+import one.lindegaard.MobHunting.ConfigManager;
+import one.lindegaard.MobHunting.DamageInformation;
+import one.lindegaard.MobHunting.HuntData;
+import one.lindegaard.MobHunting.Messages;
+import one.lindegaard.MobHunting.commands.HappyHourCommand;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
-import one.lindegaard.MobHunting.DamageInformation;
-import one.lindegaard.MobHunting.HuntData;
-import one.lindegaard.MobHunting.Messages;
-import one.lindegaard.MobHunting.commands.HappyHourCommand;
+public class HappyHourBonus extends IModifier {
 
-public class HappyHourBonus implements IModifier {
+	private HappyHourCommand happyHourCommand;
+
+	public HappyHourBonus(ConfigManager configManager,Messages messages, HappyHourCommand happyHourCommand) {
+		super(configManager,messages);
+		this.happyHourCommand = happyHourCommand;
+	}
 
 	@Override
 	public String getName() {
-		return ChatColor.LIGHT_PURPLE + Messages.getString("bonus.happyhour.name");
+		return ChatColor.LIGHT_PURPLE + messages.getString("bonus.happyhour.name");
 	}
 
 	@Override
 	public double getMultiplier(Entity deadEntity, Player killer, HuntData data, DamageInformation extraInfo,
 			EntityDamageByEntityEvent lastDamageCause) {
-		return HappyHourCommand.multiplier;
+		return happyHourCommand.multiplier;
 	}
 
 	@Override
 	public boolean doesApply(Entity deadEntity, Player killer, HuntData data, DamageInformation extraInfo,
 			EntityDamageByEntityEvent lastDamageCause) {
-		return HappyHourCommand.minutesLeft != 0;
+		return happyHourCommand.minutesLeft != 0;
 	}
 
 }

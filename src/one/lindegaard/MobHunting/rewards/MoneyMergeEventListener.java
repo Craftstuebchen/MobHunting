@@ -1,5 +1,8 @@
 package one.lindegaard.MobHunting.rewards;
 
+import one.lindegaard.MobHunting.ConfigManager;
+import one.lindegaard.MobHunting.Messages;
+import one.lindegaard.MobHunting.MobHunting;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Item;
 import org.bukkit.event.EventHandler;
@@ -10,17 +13,18 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 
-import one.lindegaard.MobHunting.Messages;
-import one.lindegaard.MobHunting.MobHunting;
-
 public class MoneyMergeEventListener implements Listener {
 
 
 	private RewardManager rewardManager;
+	private ConfigManager configManager;
+    private Messages messages;
 
-	public MoneyMergeEventListener(RewardManager rewardManager) {
+    public MoneyMergeEventListener(RewardManager rewardManager, ConfigManager configManager, Messages messages) {
 		this.rewardManager = rewardManager;
-	}
+		this.configManager = configManager;
+        this.messages = messages;
+    }
 
 
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled=false)
@@ -44,17 +48,17 @@ public class MoneyMergeEventListener implements Listener {
 					is2.setItemMeta(im);
 					is2.setAmount(0);
 					item2.setItemStack(is2);
-					String displayName = MobHunting.getConfigManager().dropMoneyOnGroundItemtype
-							.equalsIgnoreCase("ITEM") ? MobHunting.getRewardManager().format(reward2.getMoney())
+					String displayName = configManager.dropMoneyOnGroundItemtype
+							.equalsIgnoreCase("ITEM") ? rewardManager.format(reward2.getMoney())
 									: reward2.getDisplayname() + "("
-											+ MobHunting.getRewardManager().format(reward2.getMoney()) + ")";
+											+ rewardManager.format(reward2.getMoney()) + ")";
 					item2.setCustomName(
-							ChatColor.valueOf(MobHunting.getConfigManager().dropMoneyOnGroundTextColor) + displayName);
+							ChatColor.valueOf(configManager.dropMoneyOnGroundTextColor) + displayName);
 					item2.setCustomNameVisible(true);
 					item2.setMetadata(RewardManager.MH_REWARD_DATA,
 							new FixedMetadataValue(MobHunting.getInstance(), new Reward(reward2)));
-					Messages.debug("Rewards merged - new value=%s",
-							MobHunting.getRewardManager().format(reward2.getMoney()));
+					messages.debug("Rewards merged - new value=%s",
+							rewardManager.format(reward2.getMoney()));
 				}
 				if (rewardManager.getDroppedMoney().containsKey(item1.getEntityId()))
                     rewardManager.getDroppedMoney().remove(item1.getEntityId());

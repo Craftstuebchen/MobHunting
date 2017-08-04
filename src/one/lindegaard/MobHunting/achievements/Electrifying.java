@@ -1,5 +1,9 @@
 package one.lindegaard.MobHunting.achievements;
 
+import one.lindegaard.MobHunting.ConfigManager;
+import one.lindegaard.MobHunting.Messages;
+import one.lindegaard.MobHunting.events.MobHuntKillEvent;
+import one.lindegaard.MobHunting.mobs.ExtendedMobManager;
 import org.bukkit.Material;
 import org.bukkit.entity.Creeper;
 import org.bukkit.event.EventHandler;
@@ -7,15 +11,15 @@ import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 
-import one.lindegaard.MobHunting.Messages;
-import one.lindegaard.MobHunting.MobHunting;
-import one.lindegaard.MobHunting.events.MobHuntKillEvent;
+public class Electrifying extends Achievement implements Listener {
 
-public class Electrifying implements Achievement, Listener {
+	public Electrifying(ConfigManager configManager, AchievementManager achievementManager, ExtendedMobManager extendedMobManager,Messages messages) {
+		super(configManager, achievementManager, extendedMobManager, messages);
+	}
 
 	@Override
 	public String getName() {
-		return Messages.getString("achievements.electrifying.name");
+		return messages.getString("achievements.electrifying.name");
 	}
 
 	@Override
@@ -25,30 +29,30 @@ public class Electrifying implements Achievement, Listener {
 
 	@Override
 	public String getDescription() {
-		return Messages.getString("achievements.electrifying.description");
+		return messages.getString("achievements.electrifying.description");
 	}
 
 	@Override
 	public double getPrize() {
-		return MobHunting.getConfigManager().specialCharged;
+		return configManager.specialCharged;
 	}
 
 	@EventHandler
 	public void onKill(MobHuntKillEvent event) {
 		if (event.getKilledEntity() instanceof Creeper && ((Creeper) event.getKilledEntity()).isPowered()
-				&& MobHunting.getConfigManager().getBaseKillPrize(event.getKilledEntity()) > 0)
-			MobHunting.getAchievementManager().awardAchievement(this, event.getPlayer(),
-					MobHunting.getExtendedMobManager().getExtendedMobFromEntity(event.getKilledEntity()));
+				&& configManager.getBaseKillPrize(event.getKilledEntity()) > 0)
+			achievementManager.awardAchievement(this, event.getPlayer(),
+					extendedMobManager.getExtendedMobFromEntity(event.getKilledEntity()));
 	}
 
 	@Override
 	public String getPrizeCmd() {
-		return MobHunting.getConfigManager().specialChargedCmd;
+		return configManager.specialChargedCmd;
 	}
 
 	@Override
 	public String getPrizeCmdDescription() {
-		return MobHunting.getConfigManager().specialChargedCmdDesc;
+		return configManager.specialChargedCmdDesc;
 	}
 
 	@Override

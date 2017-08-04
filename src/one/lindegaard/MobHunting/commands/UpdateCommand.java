@@ -1,15 +1,20 @@
 package one.lindegaard.MobHunting.commands;
 
-import java.util.List;
-
+import one.lindegaard.MobHunting.Messages;
+import one.lindegaard.MobHunting.update.UpdateStatus;
+import one.lindegaard.MobHunting.update.Updater;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
-import one.lindegaard.MobHunting.Messages;
-import one.lindegaard.MobHunting.update.Updater;
-import one.lindegaard.MobHunting.update.UpdateStatus;
+import java.util.List;
 
 public class UpdateCommand implements ICommand {
+	private Messages messages;
+
+	public UpdateCommand(Messages messages) {
+		this.messages = messages;
+	}
+
 	@Override
 	public String getName() {
 		return "update";
@@ -32,7 +37,7 @@ public class UpdateCommand implements ICommand {
 
 	@Override
 	public String getDescription() {
-		return Messages.getString("mobhunting.commands.update.description");
+		return messages.getString("mobhunting.commands.update.description");
 	}
 
 	@Override
@@ -49,12 +54,12 @@ public class UpdateCommand implements ICommand {
 	public boolean onCommand(CommandSender sender, String label, String[] args) {
 		if (Updater.getUpdateAvailable() == UpdateStatus.AVAILABLE) {
 			if (Updater.downloadAndUpdateJar()) {
-				sender.sendMessage(ChatColor.GREEN + Messages.getString("mobhunting.commands.update.complete"));
+				sender.sendMessage(ChatColor.GREEN + messages.getString("mobhunting.commands.update.complete"));
 			} else {
-				sender.sendMessage(ChatColor.GREEN + Messages.getString("mobhunting.commands.update.could-not-update"));
+				sender.sendMessage(ChatColor.GREEN + messages.getString("mobhunting.commands.update.could-not-update"));
 			}
 		} else if (Updater.getUpdateAvailable() == UpdateStatus.RESTART_NEEDED) {
-			sender.sendMessage(ChatColor.GREEN + Messages.getString("mobhunting.commands.update.complete"));
+			sender.sendMessage(ChatColor.GREEN + messages.getString("mobhunting.commands.update.complete"));
 		} else {
 			Updater.pluginUpdateCheck(sender, true, false);
 		}

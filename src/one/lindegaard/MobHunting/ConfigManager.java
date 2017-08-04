@@ -1,90 +1,49 @@
 package one.lindegaard.MobHunting;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.List;
-
-import one.lindegaard.MobHunting.compatibility.CitizensCompat;
-import one.lindegaard.MobHunting.compatibility.CustomMobsCompat;
-import one.lindegaard.MobHunting.compatibility.MyPetCompat;
-import one.lindegaard.MobHunting.compatibility.MysteriousHalloweenCompat;
-import one.lindegaard.MobHunting.compatibility.MythicMobsCompat;
-import one.lindegaard.MobHunting.compatibility.SmartGiantsCompat;
-import one.lindegaard.MobHunting.compatibility.TARDISWeepingAngelsCompat;
+import net.citizensnpcs.api.CitizensAPI;
+import net.citizensnpcs.api.npc.NPC;
+import net.citizensnpcs.api.npc.NPCRegistry;
+import one.lindegaard.MobHunting.compatibility.*;
 import one.lindegaard.MobHunting.mobs.ExtendedMobManager;
 import one.lindegaard.MobHunting.rewards.RewardData;
+import one.lindegaard.MobHunting.rewards.RewardManager;
 import one.lindegaard.MobHunting.util.AutoConfig;
 import one.lindegaard.MobHunting.util.ConfigField;
 import one.lindegaard.MobHunting.util.Misc;
-
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.InvalidConfigurationException;
-import org.bukkit.entity.Bat;
-import org.bukkit.entity.Blaze;
-import org.bukkit.entity.CaveSpider;
-import org.bukkit.entity.Chicken;
-import org.bukkit.entity.Cow;
-import org.bukkit.entity.Creeper;
-import org.bukkit.entity.Donkey;
-import org.bukkit.entity.EnderDragon;
-import org.bukkit.entity.Enderman;
-import org.bukkit.entity.Endermite;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Evoker;
-import org.bukkit.entity.Ghast;
-import org.bukkit.entity.Giant;
-import org.bukkit.entity.Guardian;
-import org.bukkit.entity.Horse;
-import org.bukkit.entity.Husk;
-import org.bukkit.entity.Illusioner;
-import org.bukkit.entity.IronGolem;
-import org.bukkit.entity.Item;
-import org.bukkit.entity.Llama;
-import org.bukkit.entity.MagmaCube;
-import org.bukkit.entity.Mule;
-import org.bukkit.entity.MushroomCow;
-import org.bukkit.entity.Ocelot;
-import org.bukkit.entity.Parrot;
-import org.bukkit.entity.Pig;
-import org.bukkit.entity.PigZombie;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.PolarBear;
-import org.bukkit.entity.Rabbit;
-import org.bukkit.entity.Sheep;
-import org.bukkit.entity.Shulker;
-import org.bukkit.entity.Silverfish;
-import org.bukkit.entity.Skeleton;
-import org.bukkit.entity.Slime;
-import org.bukkit.entity.Snowman;
-import org.bukkit.entity.Spider;
-import org.bukkit.entity.Squid;
-import org.bukkit.entity.Stray;
-import org.bukkit.entity.Vex;
-import org.bukkit.entity.Villager;
-import org.bukkit.entity.Witch;
-import org.bukkit.entity.Wither;
-import org.bukkit.entity.Wolf;
-import org.bukkit.entity.Zombie;
-import org.bukkit.entity.ZombieHorse;
-import org.bukkit.entity.ZombieVillager;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.entity.*;
 import org.bukkit.entity.Skeleton.SkeletonType;
-import org.bukkit.entity.SkeletonHorse;
 import org.bukkit.entity.Villager.Profession;
-import org.bukkit.entity.Vindicator;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.MetadataValue;
 
-import net.citizensnpcs.api.CitizensAPI;
-import net.citizensnpcs.api.npc.NPC;
-import net.citizensnpcs.api.npc.NPCRegistry;
+import java.io.File;
+import java.util.HashMap;
+import java.util.List;
 
-@SuppressWarnings("deprecation")
 public class ConfigManager extends AutoConfig {
 
-	public ConfigManager(File file) {
+	private MobHuntingManager mobHuntingManager;
+	private RewardManager rewardManager;
+	private Messages messages;
+	private CustomMobsCompat customMobsCompat;
+	private MyPetCompat myPetCompat;
+	private TARDISWeepingAngelsCompat tARDISWeepingAngelsCompat;
+	private MysteriousHalloweenCompat mysteriousHalloweenCompat;
+	private MythicMobsCompat mythicMobsCompat;
+	private CitizensCompat citizensCompat;
+
+	public ConfigManager(MobHunting mobHunting,File file) {
 		super(file);
+		this.mobHuntingManager=mobHunting.getMobHuntingManager();
+		this.rewardManager=mobHunting.getRewardManager();
+		this.messages = mobHunting.getMessages();
+		this.customMobsCompat = mobHunting.getCustomMobsCompat();
+		this.myPetCompat = mobHunting.getMyPetCompat();
+		this.citizensCompat= mobHunting.getCitizensCompat();
 
 		setCategoryComment("mobs", "########################################################################"
 				+ "\nRewards for killing mobs."
@@ -2378,34 +2337,34 @@ public class ConfigManager extends AutoConfig {
 
 	@Override
 	protected void onPostLoad() throws InvalidConfigurationException {
-		Messages.setLanguage(language + ".lang");
+		messages.setLanguage(language + ".lang");
 	}
 
 	public double getPlayerKilledByMobPenalty(Player playerToBeRobbed) {
-		if (MobHunting.getConfigManager().mobKillsPlayerPenalty == null
-				|| MobHunting.getConfigManager().mobKillsPlayerPenalty.equals("")
-				|| MobHunting.getConfigManager().mobKillsPlayerPenalty.equals("0%")
-				|| MobHunting.getConfigManager().mobKillsPlayerPenalty.equals("0")
-				|| MobHunting.getConfigManager().mobKillsPlayerPenalty.isEmpty()) {
+		if (this.mobKillsPlayerPenalty == null
+				|| this.mobKillsPlayerPenalty.equals("")
+				|| this.mobKillsPlayerPenalty.equals("0%")
+				|| this.mobKillsPlayerPenalty.equals("0")
+				|| this.mobKillsPlayerPenalty.isEmpty()) {
 			return 0;
-		} else if (MobHunting.getConfigManager().mobKillsPlayerPenalty.contains(":")) {
-			String[] str1 = MobHunting.getConfigManager().mobKillsPlayerPenalty.split(":");
-			double prize = (MobHunting.getMobHuntingManager().mRand.nextDouble()
+		} else if (this.mobKillsPlayerPenalty.contains(":")) {
+			String[] str1 = this.mobKillsPlayerPenalty.split(":");
+			double prize = (mobHuntingManager.mRand.nextDouble()
 					* (Double.valueOf(str1[1]) - Double.valueOf(str1[0])) + Double.valueOf(str1[0]));
 			return Misc.round(prize);
-		} else if (MobHunting.getConfigManager().mobKillsPlayerPenalty.endsWith("%")) {
+		} else if (this.mobKillsPlayerPenalty.endsWith("%")) {
 			double prize = Math.floor(Double
-					.valueOf(MobHunting.getConfigManager().mobKillsPlayerPenalty.substring(0,
-							MobHunting.getConfigManager().mobKillsPlayerPenalty.length() - 1))
-					* MobHunting.getRewardManager().getBalance(playerToBeRobbed) / 100);
+					.valueOf(this.mobKillsPlayerPenalty.substring(0,
+							this.mobKillsPlayerPenalty.length() - 1))
+					* rewardManager.getBalance(playerToBeRobbed) / 100);
 			return Misc.round(prize);
-		} else if (MobHunting.getConfigManager().mobKillsPlayerPenalty.contains(":")) {
-			String[] str1 = MobHunting.getConfigManager().mobKillsPlayerPenalty.split(":");
-			double prize2 = (MobHunting.getMobHuntingManager().mRand.nextDouble()
+		} else if (this.mobKillsPlayerPenalty.contains(":")) {
+			String[] str1 = this.mobKillsPlayerPenalty.split(":");
+			double prize2 = (mobHuntingManager.mRand.nextDouble()
 					* (Double.valueOf(str1[1]) - Double.valueOf(str1[0])) + Double.valueOf(str1[0]));
 			return Misc.round(Double.valueOf(prize2));
 		} else
-			return Double.valueOf(MobHunting.getConfigManager().mobKillsPlayerPenalty);
+			return Double.valueOf(this.mobKillsPlayerPenalty);
 	}
 
 	public double getRandomPrice(String str) {
@@ -2415,7 +2374,7 @@ public class ConfigManager extends AutoConfig {
 			return 0;
 		} else if (str.contains(":")) {
 			String[] str1 = str.split(":");
-			double prize = (MobHunting.getMobHuntingManager().mRand.nextDouble()
+			double prize = (mobHuntingManager.mRand.nextDouble()
 					* (Double.valueOf(str1[1]) - Double.valueOf(str1[0])) + Double.valueOf(str1[0]));
 			return Misc.round(prize);
 		} else
@@ -2429,232 +2388,232 @@ public class ConfigManager extends AutoConfig {
 	 * @return value
 	 */
 	public double getBaseKillPrize(Entity mob) {
-		if (TARDISWeepingAngelsCompat.isWeepingAngelMonster(mob)) {
-			if (TARDISWeepingAngelsCompat.getMobRewardData()
-					.containsKey(TARDISWeepingAngelsCompat.getWeepingAngelMonsterType(mob).name()))
-				return getPrice(mob, TARDISWeepingAngelsCompat.getMobRewardData()
-						.get(TARDISWeepingAngelsCompat.getWeepingAngelMonsterType(mob).name()).getRewardPrize());
-			Messages.debug("TARDISWeepingAngel %s has no reward data",
-					TARDISWeepingAngelsCompat.getWeepingAngelMonsterType(mob).getName());
+		if (tARDISWeepingAngelsCompat.isWeepingAngelMonster(mob)) {
+			if (tARDISWeepingAngelsCompat.getMobRewardData()
+					.containsKey(tARDISWeepingAngelsCompat.getWeepingAngelMonsterType(mob).name()))
+				return getPrice(mob, tARDISWeepingAngelsCompat.getMobRewardData()
+						.get(tARDISWeepingAngelsCompat.getWeepingAngelMonsterType(mob).name()).getRewardPrize());
+			messages.debug("TARDISWeepingAngel %s has no reward data",
+					tARDISWeepingAngelsCompat.getWeepingAngelMonsterType(mob).getName());
 			return 0;
 
-		} else if (MythicMobsCompat.isMythicMob(mob)) {
-			if (MythicMobsCompat.getMobRewardData().containsKey(MythicMobsCompat.getMythicMobType(mob)))
-				return getPrice(mob, MythicMobsCompat.getMobRewardData().get(MythicMobsCompat.getMythicMobType(mob))
+		} else if (mythicMobsCompat.isMythicMob(mob)) {
+			if (mythicMobsCompat.getMobRewardData().containsKey(mythicMobsCompat.getMythicMobType(mob)))
+				return getPrice(mob, mythicMobsCompat.getMobRewardData().get(mythicMobsCompat.getMythicMobType(mob))
 						.getRewardPrize());
-			Messages.debug("MythicMob %s has no reward data", MythicMobsCompat.getMythicMobType(mob));
+			messages.debug("MythicMob %s has no reward data", mythicMobsCompat.getMythicMobType(mob));
 			return 0;
 
-		} else if (CitizensCompat.isSentryOrSentinelOrSentries(mob)) {
+		} else if (citizensCompat.isSentryOrSentinelOrSentries(mob)) {
 			NPC npc = CitizensAPI.getNPCRegistry().getNPC(mob);
 			String key = String.valueOf(npc.getId());
-			if (CitizensCompat.getMobRewardData().containsKey(key)) {
-				return getPrice(mob, CitizensCompat.getMobRewardData().get(key).getRewardPrize());
+			if (citizensCompat.getMobRewardData().containsKey(key)) {
+				return getPrice(mob, citizensCompat.getMobRewardData().get(key).getRewardPrize());
 			}
-			Messages.debug("Citizens mob %s has no reward data", npc.getName());
+			messages.debug("Citizens mob %s has no reward data", npc.getName());
 			return 0;
 
-		} else if (CustomMobsCompat.isCustomMob(mob)) {
-			if (CustomMobsCompat.getMobRewardData().containsKey(CustomMobsCompat.getCustomMobType(mob)))
-				return getPrice(mob, CustomMobsCompat.getMobRewardData().get(CustomMobsCompat.getCustomMobType(mob))
+		} else if (customMobsCompat.isCustomMob(mob)) {
+			if (customMobsCompat.getMobRewardData().containsKey(customMobsCompat.getCustomMobType(mob)))
+				return getPrice(mob, customMobsCompat.getMobRewardData().get(customMobsCompat.getCustomMobType(mob))
 						.getRewardPrize());
-			Messages.debug("CustomMob %s has no reward data", CustomMobsCompat.getCustomMobType(mob));
+			messages.debug("CustomMob %s has no reward data", customMobsCompat.getCustomMobType(mob));
 			return 0;
 
-		} else if (MysteriousHalloweenCompat.isMysteriousHalloween(mob)) {
-			if (MysteriousHalloweenCompat.getMobRewardData()
-					.containsKey(MysteriousHalloweenCompat.getMysteriousHalloweenType(mob).name()))
-				return getPrice(mob, MysteriousHalloweenCompat.getMobRewardData()
-						.get(MysteriousHalloweenCompat.getMysteriousHalloweenType(mob).name()).getRewardPrize());
-			Messages.debug("MysteriousHalloween %s has no reward data",
-					MysteriousHalloweenCompat.getMysteriousHalloweenType(mob).name());
+		} else if (mysteriousHalloweenCompat.isMysteriousHalloween(mob)) {
+			if (mysteriousHalloweenCompat.getMobRewardData()
+					.containsKey(mysteriousHalloweenCompat.getMysteriousHalloweenType(mob).name()))
+				return getPrice(mob, mysteriousHalloweenCompat.getMobRewardData()
+						.get(mysteriousHalloweenCompat.getMysteriousHalloweenType(mob).name()).getRewardPrize());
+			messages.debug("MysteriousHalloween %s has no reward data",
+					mysteriousHalloweenCompat.getMysteriousHalloweenType(mob).name());
 			return 0;
 
 		} else if (SmartGiantsCompat.isSmartGiants(mob)) {
 			if (SmartGiantsCompat.getMobRewardData().containsKey(SmartGiantsCompat.getSmartGiantsMobType(mob)))
 				return getPrice(mob, SmartGiantsCompat.getMobRewardData()
 						.get(SmartGiantsCompat.getSmartGiantsMobType(mob)).getRewardPrize());
-			Messages.debug("SmartGiantsS %s has no reward data", SmartGiantsCompat.getSmartGiantsMobType(mob));
+			messages.debug("SmartGiantsS %s has no reward data", SmartGiantsCompat.getSmartGiantsMobType(mob));
 			return 0;
 
-		} else if (MyPetCompat.isMyPet(mob)) {
-			Messages.debug("Tried to find a prize for a MyPet: %s (Owner=%s)", MyPetCompat.getMyPet(mob),
-					MyPetCompat.getMyPetOwner(mob));
-			return getPrice(mob, MobHunting.getConfigManager().wolfPrize);
+		} else if (myPetCompat.isMyPet(mob)) {
+			messages.debug("Tried to find a prize for a MyPet: %s (Owner=%s)", myPetCompat.getMyPet(mob),
+					myPetCompat.getMyPetOwner(mob));
+			return getPrice(mob, this.wolfPrize);
 
 		} else {
 			if (Misc.isMC112OrNewer())
 				if (mob instanceof Parrot)
-					return getPrice(mob, MobHunting.getConfigManager().parrotPrize);
+					return getPrice(mob, this.parrotPrize);
 				else if (mob instanceof Illusioner)
-					return getPrice(mob, MobHunting.getConfigManager().illusionerPrize);
+					return getPrice(mob, this.illusionerPrize);
 
 			if (Misc.isMC111OrNewer())
 				if (mob instanceof Llama)
-					return getPrice(mob, MobHunting.getConfigManager().llamaPrize);
+					return getPrice(mob, this.llamaPrize);
 				else if (mob instanceof Vex)
-					return getPrice(mob, MobHunting.getConfigManager().vexPrize);
+					return getPrice(mob, this.vexPrize);
 				else if (mob instanceof Vindicator)
-					return getPrice(mob, MobHunting.getConfigManager().vindicatorPrize);
+					return getPrice(mob, this.vindicatorPrize);
 				else if (mob instanceof Evoker)
-					return getPrice(mob, MobHunting.getConfigManager().evokerPrize);
+					return getPrice(mob, this.evokerPrize);
 				else if (mob instanceof Donkey)
-					return getPrice(mob, MobHunting.getConfigManager().donkeyPrize);
+					return getPrice(mob, this.donkeyPrize);
 				else if (mob instanceof Mule)
-					return getPrice(mob, MobHunting.getConfigManager().mulePrize);
+					return getPrice(mob, this.mulePrize);
 				else if (mob instanceof SkeletonHorse)
-					return getPrice(mob, MobHunting.getConfigManager().skeletonhorsePrize);
+					return getPrice(mob, this.skeletonhorsePrize);
 				else if (mob instanceof ZombieHorse)
-					return getPrice(mob, MobHunting.getConfigManager().zombiehorsePrize);
+					return getPrice(mob, this.zombiehorsePrize);
 				else if (mob instanceof Stray)
-					return getPrice(mob, MobHunting.getConfigManager().strayPrize);
+					return getPrice(mob, this.strayPrize);
 				else if (mob instanceof Husk)
-					return getPrice(mob, MobHunting.getConfigManager().huskPrize);
+					return getPrice(mob, this.huskPrize);
 				else if (mob instanceof ZombieVillager)
-					return getPrice(mob, MobHunting.getConfigManager().zombieVillagerPrize);
+					return getPrice(mob, this.zombieVillagerPrize);
 				else if (mob instanceof Villager && ((Villager) mob).getProfession() == Profession.NITWIT)
-					return getPrice(mob, MobHunting.getConfigManager().nitwitPrize);
+					return getPrice(mob, this.nitwitPrize);
 
 			if (Misc.isMC110OrNewer())
 				if (mob instanceof PolarBear)
-					return getPrice(mob, MobHunting.getConfigManager().polarBearPrize);
+					return getPrice(mob, this.polarBearPrize);
 				else if (mob instanceof Skeleton && ((Skeleton) mob).getSkeletonType() == SkeletonType.STRAY)
-					return getPrice(mob, MobHunting.getConfigManager().strayPrize);
+					return getPrice(mob, this.strayPrize);
 				else if (mob instanceof Zombie && ((Zombie) mob).getVillagerProfession() == Profession.HUSK)
-					return getPrice(mob, MobHunting.getConfigManager().huskPrize);
+					return getPrice(mob, this.huskPrize);
 				else if (mob instanceof Villager && ((Villager) mob).getProfession() == Profession.NORMAL)
-					return getPrice(mob, MobHunting.getConfigManager().villagerPrize);
+					return getPrice(mob, this.villagerPrize);
 				else if (mob instanceof Villager && ((Villager) mob).getProfession() == Profession.PRIEST)
-					return getPrice(mob, MobHunting.getConfigManager().priestPrize);
+					return getPrice(mob, this.priestPrize);
 				else if (mob instanceof Villager && ((Villager) mob).getProfession() == Profession.BUTCHER)
-					return getPrice(mob, MobHunting.getConfigManager().butcherPrize);
+					return getPrice(mob, this.butcherPrize);
 				else if (mob instanceof Villager && ((Villager) mob).getProfession() == Profession.BLACKSMITH)
-					return getPrice(mob, MobHunting.getConfigManager().blacksmithPrize);
+					return getPrice(mob, this.blacksmithPrize);
 				else if (mob instanceof Villager && ((Villager) mob).getProfession() == Profession.LIBRARIAN)
-					return getPrice(mob, MobHunting.getConfigManager().librarianPrize);
+					return getPrice(mob, this.librarianPrize);
 				else if (mob instanceof Villager && ((Villager) mob).getProfession() == Profession.FARMER)
-					return getPrice(mob, MobHunting.getConfigManager().farmerPrize);
+					return getPrice(mob, this.farmerPrize);
 
 			if (Misc.isMC19OrNewer())
 				if (mob instanceof Shulker)
-					return getPrice(mob, MobHunting.getConfigManager().shulkerPrize);
+					return getPrice(mob, this.shulkerPrize);
 
 			if (Misc.isMC18OrNewer())
 				if (mob instanceof Guardian && ((Guardian) mob).isElder())
-					return getPrice(mob, MobHunting.getConfigManager().elderGuardianPrize);
+					return getPrice(mob, this.elderGuardianPrize);
 				else if (mob instanceof Guardian)
-					return getPrice(mob, MobHunting.getConfigManager().guardianPrize);
+					return getPrice(mob, this.guardianPrize);
 				else if (mob instanceof Endermite)
-					return getPrice(mob, MobHunting.getConfigManager().endermitePrize);
+					return getPrice(mob, this.endermitePrize);
 				else if (mob instanceof Rabbit)
 					if (((Rabbit) mob).getRabbitType() == Rabbit.Type.THE_KILLER_BUNNY)
-						return getPrice(mob, MobHunting.getConfigManager().killerrabbitPrize);
+						return getPrice(mob, this.killerrabbitPrize);
 					else
-						return getPrice(mob, MobHunting.getConfigManager().rabbitPrize);
+						return getPrice(mob, this.rabbitPrize);
 
 			// Minecraft 1.7.10 and older entities
 			if (mob instanceof Player) {
-				if (MobHunting.getConfigManager().pvpKillPrize.endsWith("%")) {
+				if (this.pvpKillPrize.endsWith("%")) {
 					double prize = Math.floor(Double
-							.valueOf(MobHunting.getConfigManager().pvpKillPrize.substring(0,
-									MobHunting.getConfigManager().pvpKillPrize.length() - 1))
-							* MobHunting.getRewardManager().getBalance((Player) mob) / 100);
+							.valueOf(this.pvpKillPrize.substring(0,
+									this.pvpKillPrize.length() - 1))
+							* rewardManager.getBalance((Player) mob) / 100);
 					return Misc.round(prize);
-				} else if (MobHunting.getConfigManager().pvpKillPrize.contains(":")) {
-					String[] str1 = MobHunting.getConfigManager().pvpKillPrize.split(":");
-					double prize2 = (MobHunting.getMobHuntingManager().mRand.nextDouble()
+				} else if (this.pvpKillPrize.contains(":")) {
+					String[] str1 = this.pvpKillPrize.split(":");
+					double prize2 = (mobHuntingManager.mRand.nextDouble()
 							* (Double.valueOf(str1[1]) - Double.valueOf(str1[0])) + Double.valueOf(str1[0]));
-					return Misc.round(Double.valueOf(prize2));
+					return Misc.round(prize2);
 				} else
-					return Double.valueOf(MobHunting.getConfigManager().pvpKillPrize);
+					return Double.valueOf(this.pvpKillPrize);
 			} else if (mob instanceof Blaze)
-				return getPrice(mob, MobHunting.getConfigManager().blazePrize);
+				return getPrice(mob, this.blazePrize);
 			else if (mob instanceof Creeper)
-				return getPrice(mob, MobHunting.getConfigManager().creeperPrize);
+				return getPrice(mob, this.creeperPrize);
 			else if (mob instanceof Silverfish)
-				return getPrice(mob, MobHunting.getConfigManager().silverfishPrize);
+				return getPrice(mob, this.silverfishPrize);
 			else if (mob instanceof Enderman)
-				return getPrice(mob, MobHunting.getConfigManager().endermanPrize);
+				return getPrice(mob, this.endermanPrize);
 			else if (mob instanceof Giant)
-				return getPrice(mob, MobHunting.getConfigManager().giantPrize);
+				return getPrice(mob, this.giantPrize);
 			else if (mob instanceof Skeleton && ((Skeleton) mob).getSkeletonType() == SkeletonType.NORMAL)
-				return getPrice(mob, MobHunting.getConfigManager().skeletonPrize);
+				return getPrice(mob, this.skeletonPrize);
 			else if (mob instanceof Skeleton && ((Skeleton) mob).getSkeletonType() == SkeletonType.WITHER)
-				return getPrice(mob, MobHunting.getConfigManager().witherSkeletonPrize);
+				return getPrice(mob, this.witherSkeletonPrize);
 			else if (mob instanceof CaveSpider)
-				return getPrice(mob, MobHunting.getConfigManager().caveSpiderPrize);
+				return getPrice(mob, this.caveSpiderPrize);
 			else if (mob instanceof Spider)
-				return getPrice(mob, MobHunting.getConfigManager().spiderPrize);
+				return getPrice(mob, this.spiderPrize);
 			else if (mob instanceof Witch)
-				return getPrice(mob, MobHunting.getConfigManager().witchPrize);
+				return getPrice(mob, this.witchPrize);
 			else if (mob instanceof PigZombie)
 				// PigZombie is a subclass of Zombie.
 				if (((PigZombie) mob).isBaby())
-					return Misc.round(getPrice(mob, MobHunting.getConfigManager().zombiePigmanPrize)
-							* MobHunting.getConfigManager().babyMultiplier);
+					return Misc.round(getPrice(mob, this.zombiePigmanPrize)
+							* this.babyMultiplier);
 				else
-					return getPrice(mob, MobHunting.getConfigManager().zombiePigmanPrize);
+					return getPrice(mob, this.zombiePigmanPrize);
 			else if (mob instanceof Zombie)
 				if (((Zombie) mob).isBaby())
-					return Misc.round(getPrice(mob, MobHunting.getConfigManager().zombiePrize)
-							* MobHunting.getConfigManager().babyMultiplier);
+					return Misc.round(getPrice(mob, this.zombiePrize)
+							* this.babyMultiplier);
 				else
-					return getPrice(mob, MobHunting.getConfigManager().zombiePrize);
+					return getPrice(mob, this.zombiePrize);
 			else if (mob instanceof Ghast)
-				return getPrice(mob, MobHunting.getConfigManager().ghastPrize);
+				return getPrice(mob, this.ghastPrize);
 			else if (mob instanceof MagmaCube)
 				// MagmaCube is a subclass of Slime
-				return getPrice(mob, MobHunting.getConfigManager().magmaCubePrize) * ((MagmaCube) mob).getSize();
+				return getPrice(mob, this.magmaCubePrize) * ((MagmaCube) mob).getSize();
 			else if (mob instanceof Slime)
-				return getPrice(mob, MobHunting.getConfigManager().slimeTinyPrize) * ((Slime) mob).getSize();
+				return getPrice(mob, this.slimeTinyPrize) * ((Slime) mob).getSize();
 			else if (mob instanceof EnderDragon)
-				return getPrice(mob, MobHunting.getConfigManager().enderdragonPrize);
+				return getPrice(mob, this.enderdragonPrize);
 			else if (mob instanceof Wither)
-				return getPrice(mob, MobHunting.getConfigManager().witherPrize);
+				return getPrice(mob, this.witherPrize);
 			else if (mob instanceof IronGolem)
-				return getPrice(mob, MobHunting.getConfigManager().ironGolemPrize);
+				return getPrice(mob, this.ironGolemPrize);
 
 			// Passive mobs
 			else if (mob instanceof Bat)
-				return getPrice(mob, MobHunting.getConfigManager().batPrize);
+				return getPrice(mob, this.batPrize);
 			else if (mob instanceof Chicken)
-				return getPrice(mob, MobHunting.getConfigManager().chickenPrize);
+				return getPrice(mob, this.chickenPrize);
 			else if (mob instanceof Cow)
 				if (mob instanceof MushroomCow)
 					// MushroomCow is a subclass of Cow
-					return getPrice(mob, MobHunting.getConfigManager().mushroomCowPrize);
+					return getPrice(mob, this.mushroomCowPrize);
 				else
-					return getPrice(mob, MobHunting.getConfigManager().cowPrize);
+					return getPrice(mob, this.cowPrize);
 			else if (mob instanceof Horse)
-				return getPrice(mob, MobHunting.getConfigManager().horsePrize);
+				return getPrice(mob, this.horsePrize);
 			else if (mob instanceof Ocelot)
-				return getPrice(mob, MobHunting.getConfigManager().ocelotPrize);
+				return getPrice(mob, this.ocelotPrize);
 			else if (mob instanceof Pig)
-				return getPrice(mob, MobHunting.getConfigManager().pigPrize);
+				return getPrice(mob, this.pigPrize);
 			else if (mob instanceof Sheep)
-				return getPrice(mob, MobHunting.getConfigManager().sheepPrize);
+				return getPrice(mob, this.sheepPrize);
 			else if (mob instanceof Snowman)
-				return getPrice(mob, MobHunting.getConfigManager().snowmanPrize);
+				return getPrice(mob, this.snowmanPrize);
 			else if (mob instanceof Squid)
-				return getPrice(mob, MobHunting.getConfigManager().squidPrize);
+				return getPrice(mob, this.squidPrize);
 			else if (mob instanceof Villager)
-				return getPrice(mob, MobHunting.getConfigManager().villagerPrize);
+				return getPrice(mob, this.villagerPrize);
 			else if (mob instanceof Wolf) {
-				return getPrice(mob, MobHunting.getConfigManager().wolfPrize);
+				return getPrice(mob, this.wolfPrize);
 			} else if (mob instanceof Item && ((Item) mob).getItemStack().getType() == Material.RAW_FISH) {
 				ItemStack is = ((Item) mob).getItemStack();
 				if (is.getData().getData() == (byte) 0) {
-					return getPrice(mob, MobHunting.getConfigManager().rawFishPrize);
+					return getPrice(mob, this.rawFishPrize);
 				} else if (is.getData().getData() == (byte) 1) {
-					return getPrice(mob, MobHunting.getConfigManager().rawSalmonPrize);
+					return getPrice(mob, this.rawSalmonPrize);
 				} else if (is.getData().getData() == (byte) 2) {
-					return getPrice(mob, MobHunting.getConfigManager().clownfishPrize);
+					return getPrice(mob, this.clownfishPrize);
 				} else if (is.getData().getData() == (byte) 3) {
-					return getPrice(mob, MobHunting.getConfigManager().pufferfishPrize);
+					return getPrice(mob, this.pufferfishPrize);
 				}
 			}
 		}
-		// Messages.debug("Mobhunting could not find the prize for killing this
+		// messages.debug("Mobhunting could not find the prize for killing this
 		// mob: %s (%s)",
 		// ExtendedMobManager.getMobName(mob), mob.getType());
 		return 0;
@@ -2678,7 +2637,7 @@ public class ConfigManager extends AutoConfig {
 				return 0;
 		} else if (str.contains(":")) {
 			String[] str1 = str.split(":");
-			double prize = (MobHunting.getMobHuntingManager().mRand.nextDouble()
+			double prize = (mobHuntingManager.mRand.nextDouble()
 					* (Double.valueOf(str1[1]) - Double.valueOf(str1[0])) + Double.valueOf(str1[0]));
 			return Misc.round(prize);
 		} else
@@ -2693,43 +2652,43 @@ public class ConfigManager extends AutoConfig {
 	 *         be separeted by a "|"
 	 */
 	public String getKillConsoleCmd(Entity mob) {
-		if (TARDISWeepingAngelsCompat.isWeepingAngelMonster(mob)) {
-			if (TARDISWeepingAngelsCompat.getMobRewardData()
-					.containsKey(TARDISWeepingAngelsCompat.getWeepingAngelMonsterType(mob).name()))
-				return TARDISWeepingAngelsCompat.getMobRewardData()
-						.get(TARDISWeepingAngelsCompat.getWeepingAngelMonsterType(mob).name()).getConsoleRunCommand();
+		if (tARDISWeepingAngelsCompat.isWeepingAngelMonster(mob)) {
+			if (tARDISWeepingAngelsCompat.getMobRewardData()
+					.containsKey(tARDISWeepingAngelsCompat.getWeepingAngelMonsterType(mob).name()))
+				return tARDISWeepingAngelsCompat.getMobRewardData()
+						.get(tARDISWeepingAngelsCompat.getWeepingAngelMonsterType(mob).name()).getConsoleRunCommand();
 			return "";
 
-		} else if (MythicMobsCompat.isMythicMob(mob)) {
-			if (MythicMobsCompat.getMobRewardData().containsKey(MythicMobsCompat.getMythicMobType(mob)))
-				return MythicMobsCompat.getMobRewardData().get(MythicMobsCompat.getMythicMobType(mob))
+		} else if (mythicMobsCompat.isMythicMob(mob)) {
+			if (mythicMobsCompat.getMobRewardData().containsKey(mythicMobsCompat.getMythicMobType(mob)))
+				return mythicMobsCompat.getMobRewardData().get(mythicMobsCompat.getMythicMobType(mob))
 						.getConsoleRunCommand();
 			return "";
 
-		} else if (CitizensCompat.isNPC(mob) && CitizensCompat.isSentryOrSentinelOrSentries(mob)) {
+		} else if (citizensCompat.isNPC(mob) && citizensCompat.isSentryOrSentinelOrSentries(mob)) {
 			NPC npc = CitizensAPI.getNPCRegistry().getNPC(mob);
 			String key = String.valueOf(npc.getId());
-			if (CitizensCompat.getMobRewardData().containsKey(key)) {
-				return CitizensCompat.getMobRewardData().get(key).getConsoleRunCommand();
+			if (citizensCompat.getMobRewardData().containsKey(key)) {
+				return citizensCompat.getMobRewardData().get(key).getConsoleRunCommand();
 			}
 			return "";
 
-		} else if (CustomMobsCompat.isCustomMob(mob)) {
+		} else if (customMobsCompat.isCustomMob(mob)) {
 			if (mob.hasMetadata(CustomMobsCompat.MH_CUSTOMMOBS)) {
 				List<MetadataValue> data = mob.getMetadata(CustomMobsCompat.MH_CUSTOMMOBS);
 				for (MetadataValue value : data)
 					if (value.value() instanceof RewardData)
 						return ((RewardData) value.value()).getConsoleRunCommand();
-			} else if (CustomMobsCompat.getMobRewardData().containsKey(CustomMobsCompat.getCustomMobType(mob)))
-				return CustomMobsCompat.getMobRewardData().get(CustomMobsCompat.getCustomMobType(mob))
+			} else if (customMobsCompat.getMobRewardData().containsKey(customMobsCompat.getCustomMobType(mob)))
+				return customMobsCompat.getMobRewardData().get(customMobsCompat.getCustomMobType(mob))
 						.getConsoleRunCommand();
 			return "";
 
-		} else if (MysteriousHalloweenCompat.isMysteriousHalloween(mob)) {
-			if (MysteriousHalloweenCompat.getMobRewardData()
-					.containsKey(MysteriousHalloweenCompat.getMysteriousHalloweenType(mob).name()))
-				return MysteriousHalloweenCompat.getMobRewardData()
-						.get(MysteriousHalloweenCompat.getMysteriousHalloweenType(mob).name()).getConsoleRunCommand();
+		} else if (mysteriousHalloweenCompat.isMysteriousHalloween(mob)) {
+			if (mysteriousHalloweenCompat.getMobRewardData()
+					.containsKey(mysteriousHalloweenCompat.getMysteriousHalloweenType(mob).name()))
+				return mysteriousHalloweenCompat.getMobRewardData()
+						.get(mysteriousHalloweenCompat.getMysteriousHalloweenType(mob).name()).getConsoleRunCommand();
 			return "";
 
 		} else if (SmartGiantsCompat.isSmartGiants(mob)) {
@@ -2738,160 +2697,160 @@ public class ConfigManager extends AutoConfig {
 						.getConsoleRunCommand();
 			return "";
 
-		} else if (MyPetCompat.isMyPet(mob)) {
-			return MobHunting.getConfigManager().wolfCmd;
+		} else if (myPetCompat.isMyPet(mob)) {
+			return this.wolfCmd;
 
 		} else {
 			if (Misc.isMC112OrNewer())
 				if (mob instanceof Parrot)
-					return MobHunting.getConfigManager().parrotCmd;
+					return this.parrotCmd;
 				else if (mob instanceof Illusioner)
-					return MobHunting.getConfigManager().illusionerCmd;
+					return this.illusionerCmd;
 
 			if (Misc.isMC111OrNewer())
 				if (mob instanceof Llama)
-					return MobHunting.getConfigManager().llamaCmd;
+					return this.llamaCmd;
 				else if (mob instanceof Vex)
-					return MobHunting.getConfigManager().vexCmd;
+					return this.vexCmd;
 				else if (mob instanceof Vindicator)
-					return MobHunting.getConfigManager().vindicatorCmd;
+					return this.vindicatorCmd;
 				else if (mob instanceof Evoker)
-					return MobHunting.getConfigManager().evokerCmd;
+					return this.evokerCmd;
 				else if (mob instanceof Donkey)
-					return MobHunting.getConfigManager().donkeyCmd;
+					return this.donkeyCmd;
 				else if (mob instanceof Mule)
-					return MobHunting.getConfigManager().muleCmd;
+					return this.muleCmd;
 				else if (mob instanceof SkeletonHorse)
-					return MobHunting.getConfigManager().skeletonhorseCmd;
+					return this.skeletonhorseCmd;
 				else if (mob instanceof ZombieHorse)
-					return MobHunting.getConfigManager().zombiehorseCmd;
+					return this.zombiehorseCmd;
 				else if (mob instanceof Stray)
-					return MobHunting.getConfigManager().strayCmd;
+					return this.strayCmd;
 				else if (mob instanceof Husk)
-					return MobHunting.getConfigManager().huskCmd;
+					return this.huskCmd;
 				else if (mob instanceof ZombieVillager)
-					return MobHunting.getConfigManager().zombieVillagerCmd;
+					return this.zombieVillagerCmd;
 				else if (mob instanceof Villager && ((Villager) mob).getProfession() == Profession.NITWIT)
-					return MobHunting.getConfigManager().nitwitCmd;
+					return this.nitwitCmd;
 
 			if (Misc.isMC110OrNewer())
 				if (mob instanceof PolarBear)
-					return MobHunting.getConfigManager().polarBearCmd;
+					return this.polarBearCmd;
 				else if (mob instanceof Skeleton && ((Skeleton) mob).getSkeletonType() == SkeletonType.STRAY)
-					return MobHunting.getConfigManager().strayCmd;
+					return this.strayCmd;
 				else if (mob instanceof Zombie && ((Zombie) mob).getVillagerProfession() == Profession.HUSK)
-					return MobHunting.getConfigManager().huskCmd;
+					return this.huskCmd;
 				else if (mob instanceof Villager && ((Villager) mob).getProfession() == Profession.NORMAL)
-					return MobHunting.getConfigManager().villagerCmd;
+					return this.villagerCmd;
 				else if (mob instanceof Villager && ((Villager) mob).getProfession() == Profession.PRIEST)
-					return MobHunting.getConfigManager().priestCmd;
+					return this.priestCmd;
 				else if (mob instanceof Villager && ((Villager) mob).getProfession() == Profession.BUTCHER)
-					return MobHunting.getConfigManager().butcherCmd;
+					return this.butcherCmd;
 				else if (mob instanceof Villager && ((Villager) mob).getProfession() == Profession.BLACKSMITH)
-					return MobHunting.getConfigManager().blacksmithCmd;
+					return this.blacksmithCmd;
 				else if (mob instanceof Villager && ((Villager) mob).getProfession() == Profession.LIBRARIAN)
-					return MobHunting.getConfigManager().librarianCmd;
+					return this.librarianCmd;
 				else if (mob instanceof Villager && ((Villager) mob).getProfession() == Profession.FARMER)
-					return MobHunting.getConfigManager().farmerCmd;
+					return this.farmerCmd;
 
 			if (Misc.isMC19OrNewer())
 				if (mob instanceof Shulker)
-					return MobHunting.getConfigManager().shulkerCmd;
+					return this.shulkerCmd;
 
 			if (Misc.isMC18OrNewer())
 				if (mob instanceof Guardian && ((Guardian) mob).isElder())
-					return MobHunting.getConfigManager().elderGuardianCmd;
+					return this.elderGuardianCmd;
 				else if (mob instanceof Guardian)
-					return MobHunting.getConfigManager().guardianCmd;
+					return this.guardianCmd;
 				else if (mob instanceof Endermite)
-					return MobHunting.getConfigManager().endermiteCmd;
+					return this.endermiteCmd;
 				else if (mob instanceof Rabbit)
 					if ((((Rabbit) mob).getRabbitType()) == Rabbit.Type.THE_KILLER_BUNNY)
-						return MobHunting.getConfigManager().killerrabbitCmd;
+						return this.killerrabbitCmd;
 					else
-						return MobHunting.getConfigManager().rabbitCmd;
+						return this.rabbitCmd;
 
 			if (mob instanceof Player)
-				return MobHunting.getConfigManager().pvpKillCmd;
+				return this.pvpKillCmd;
 			else if (mob instanceof Blaze)
-				return MobHunting.getConfigManager().blazeCmd;
+				return this.blazeCmd;
 			else if (mob instanceof Creeper)
-				return MobHunting.getConfigManager().creeperCmd;
+				return this.creeperCmd;
 			else if (mob instanceof Silverfish)
-				return MobHunting.getConfigManager().silverfishCmd;
+				return this.silverfishCmd;
 			else if (mob instanceof Enderman)
-				return MobHunting.getConfigManager().endermanCmd;
+				return this.endermanCmd;
 			else if (mob instanceof Giant)
-				return MobHunting.getConfigManager().giantCmd;
+				return this.giantCmd;
 			else if (mob instanceof Skeleton && ((Skeleton) mob).getSkeletonType() == SkeletonType.NORMAL)
-				return MobHunting.getConfigManager().skeletonCmd;
+				return this.skeletonCmd;
 			else if (mob instanceof Skeleton && ((Skeleton) mob).getSkeletonType() == SkeletonType.WITHER)
-				return MobHunting.getConfigManager().witherSkeletonCmd;
+				return this.witherSkeletonCmd;
 			else if (mob instanceof Spider)
 				if (mob instanceof CaveSpider)
 					// CaveSpider is a sub class of Spider
-					return MobHunting.getConfigManager().caveSpiderCmd;
+					return this.caveSpiderCmd;
 				else
-					return MobHunting.getConfigManager().spiderCmd;
+					return this.spiderCmd;
 			else if (mob instanceof Witch)
-				return MobHunting.getConfigManager().witchCmd;
+				return this.witchCmd;
 			else if (mob instanceof Zombie)
 				if (mob instanceof PigZombie)
-					return MobHunting.getConfigManager().zombiePigmanCmd;
+					return this.zombiePigmanCmd;
 				else
-					return MobHunting.getConfigManager().zombieCmd;
+					return this.zombieCmd;
 			else if (mob instanceof Ghast)
-				return MobHunting.getConfigManager().ghastCmd;
+				return this.ghastCmd;
 			else if (mob instanceof MagmaCube)
 				// Magmacube is an instance of slime and must be checked before
 				// the Slime itself
-				return MobHunting.getConfigManager().magmaCubeCmd;
+				return this.magmaCubeCmd;
 			else if (mob instanceof Slime)
-				return MobHunting.getConfigManager().slimeCmd;
+				return this.slimeCmd;
 			else if (mob instanceof EnderDragon)
-				return MobHunting.getConfigManager().enderdragonCmd;
+				return this.enderdragonCmd;
 			else if (mob instanceof Wither)
-				return MobHunting.getConfigManager().witherCmd;
+				return this.witherCmd;
 			else if (mob instanceof IronGolem)
-				return MobHunting.getConfigManager().ironGolemCmd;
+				return this.ironGolemCmd;
 
 			// Passive mobs
 			else if (mob instanceof Bat)
-				return MobHunting.getConfigManager().batCmd;
+				return this.batCmd;
 			else if (mob instanceof Chicken)
-				return MobHunting.getConfigManager().chickenCmd;
+				return this.chickenCmd;
 
 			else if (mob instanceof Cow)
 				if (mob instanceof MushroomCow)
-					return MobHunting.getConfigManager().mushroomCowCmd;
+					return this.mushroomCowCmd;
 				else
-					return MobHunting.getConfigManager().cowCmd;
+					return this.cowCmd;
 			else if (mob instanceof Horse)
-				return MobHunting.getConfigManager().horseCmd;
+				return this.horseCmd;
 			else if (mob instanceof Ocelot)
-				return MobHunting.getConfigManager().ocelotCmd;
+				return this.ocelotCmd;
 			else if (mob instanceof Pig)
-				return MobHunting.getConfigManager().pigCmd;
+				return this.pigCmd;
 			else if (mob instanceof Sheep)
-				return MobHunting.getConfigManager().sheepCmd;
+				return this.sheepCmd;
 			else if (mob instanceof Snowman)
-				return MobHunting.getConfigManager().snowmanCmd;
+				return this.snowmanCmd;
 			else if (mob instanceof Squid)
-				return MobHunting.getConfigManager().squidCmd;
+				return this.squidCmd;
 			else if (mob instanceof Villager)
-				return MobHunting.getConfigManager().villagerCmd;
+				return this.villagerCmd;
 			else if (mob instanceof Wolf)
-				return MobHunting.getConfigManager().wolfCmd;
+				return this.wolfCmd;
 			else if (mob instanceof Item && ((Item) mob).getItemStack().getType() == Material.RAW_FISH) {
 				ItemStack is = ((Item) mob).getItemStack();
 				if (is.getData().getData() == (byte) 0) {
-					return MobHunting.getConfigManager().rawFishCmd;
+					return this.rawFishCmd;
 				} else if (is.getData().getData() == (byte) 1) {
-					return MobHunting.getConfigManager().rawSalmonCmd;
+					return this.rawSalmonCmd;
 				} else if (is.getData().getData() == (byte) 2) {
-					return MobHunting.getConfigManager().clownfishCmd;
+					return this.clownfishCmd;
 				} else if (is.getData().getData() == (byte) 3) {
-					return MobHunting.getConfigManager().pufferfishCmd;
+					return this.pufferfishCmd;
 				}
 			}
 
@@ -2906,38 +2865,38 @@ public class ConfigManager extends AutoConfig {
 	 * @return String
 	 */
 	public String getKillRewardDescription(Entity mob) {
-		if (TARDISWeepingAngelsCompat.isWeepingAngelMonster(mob)) {
-			if (TARDISWeepingAngelsCompat.getMobRewardData()
-					.containsKey(TARDISWeepingAngelsCompat.getWeepingAngelMonsterType(mob).name()))
-				return TARDISWeepingAngelsCompat.getMobRewardData()
-						.get(TARDISWeepingAngelsCompat.getWeepingAngelMonsterType(mob).name()).getRewardDescription();
+		if (tARDISWeepingAngelsCompat.isWeepingAngelMonster(mob)) {
+			if (tARDISWeepingAngelsCompat.getMobRewardData()
+					.containsKey(tARDISWeepingAngelsCompat.getWeepingAngelMonsterType(mob).name()))
+				return tARDISWeepingAngelsCompat.getMobRewardData()
+						.get(tARDISWeepingAngelsCompat.getWeepingAngelMonsterType(mob).name()).getRewardDescription();
 			return "";
 
-		} else if (MythicMobsCompat.isMythicMob(mob)) {
-			if (MythicMobsCompat.getMobRewardData().containsKey(MythicMobsCompat.getMythicMobType(mob)))
-				return MythicMobsCompat.getMobRewardData().get(MythicMobsCompat.getMythicMobType(mob))
+		} else if (mythicMobsCompat.isMythicMob(mob)) {
+			if (mythicMobsCompat.getMobRewardData().containsKey(mythicMobsCompat.getMythicMobType(mob)))
+				return mythicMobsCompat.getMobRewardData().get(mythicMobsCompat.getMythicMobType(mob))
 						.getRewardDescription();
 			return "";
 
-		} else if (CitizensCompat.isNPC(mob) && CitizensCompat.isSentryOrSentinelOrSentries(mob)) {
+		} else if (citizensCompat.isNPC(mob) && citizensCompat.isSentryOrSentinelOrSentries(mob)) {
 			NPC npc = CitizensAPI.getNPCRegistry().getNPC(mob);
 			String key = String.valueOf(npc.getId());
-			if (CitizensCompat.getMobRewardData().containsKey(key)) {
-				return CitizensCompat.getMobRewardData().get(key).getRewardDescription();
+			if (citizensCompat.getMobRewardData().containsKey(key)) {
+				return citizensCompat.getMobRewardData().get(key).getRewardDescription();
 			}
 			return "";
 
-		} else if (CustomMobsCompat.isCustomMob(mob)) {
-			if (CustomMobsCompat.getMobRewardData().containsKey(CustomMobsCompat.getCustomMobType(mob)))
-				return CustomMobsCompat.getMobRewardData().get(CustomMobsCompat.getCustomMobType(mob))
+		} else if (customMobsCompat.isCustomMob(mob)) {
+			if (customMobsCompat.getMobRewardData().containsKey(customMobsCompat.getCustomMobType(mob)))
+				return customMobsCompat.getMobRewardData().get(customMobsCompat.getCustomMobType(mob))
 						.getRewardDescription();
 			return "";
 
-		} else if (MysteriousHalloweenCompat.isMysteriousHalloween(mob)) {
-			if (MysteriousHalloweenCompat.getMobRewardData()
-					.containsKey(MysteriousHalloweenCompat.getMysteriousHalloweenType(mob).name()))
-				return MysteriousHalloweenCompat.getMobRewardData()
-						.get(MysteriousHalloweenCompat.getMysteriousHalloweenType(mob).name()).getRewardDescription();
+		} else if (mysteriousHalloweenCompat.isMysteriousHalloween(mob)) {
+			if (mysteriousHalloweenCompat.getMobRewardData()
+					.containsKey(mysteriousHalloweenCompat.getMysteriousHalloweenType(mob).name()))
+				return mysteriousHalloweenCompat.getMobRewardData()
+						.get(mysteriousHalloweenCompat.getMysteriousHalloweenType(mob).name()).getRewardDescription();
 			return "";
 
 		} else if (SmartGiantsCompat.isSmartGiants(mob)) {
@@ -2946,159 +2905,159 @@ public class ConfigManager extends AutoConfig {
 						.getRewardDescription();
 			return "";
 
-		} else if (MyPetCompat.isMyPet(mob)) {
-			return MobHunting.getConfigManager().wolfCmdDesc;
+		} else if (myPetCompat.isMyPet(mob)) {
+			return this.wolfCmdDesc;
 
 		} else {
 			if (Misc.isMC112OrNewer())
 				if (mob instanceof Parrot)
-					return MobHunting.getConfigManager().parrotCmdDesc;
+					return this.parrotCmdDesc;
 				else if (mob instanceof Illusioner)
-					return MobHunting.getConfigManager().illusionerCmdDesc;
+					return this.illusionerCmdDesc;
 
 			if (Misc.isMC111OrNewer())
 				if (mob instanceof Llama)
-					return MobHunting.getConfigManager().llamaCmdDesc;
+					return this.llamaCmdDesc;
 				else if (mob instanceof Vex)
-					return MobHunting.getConfigManager().vexCmdDesc;
+					return this.vexCmdDesc;
 				else if (mob instanceof Vindicator)
-					return MobHunting.getConfigManager().vindicatorCmdDesc;
+					return this.vindicatorCmdDesc;
 				else if (mob instanceof Evoker)
-					return MobHunting.getConfigManager().evokerCmdDesc;
+					return this.evokerCmdDesc;
 				else if (mob instanceof Donkey)
-					return MobHunting.getConfigManager().donkeyCmdDesc;
+					return this.donkeyCmdDesc;
 				else if (mob instanceof Mule)
-					return MobHunting.getConfigManager().muleCmdDesc;
+					return this.muleCmdDesc;
 				else if (mob instanceof SkeletonHorse)
-					return MobHunting.getConfigManager().skeletonhorseCmdDesc;
+					return this.skeletonhorseCmdDesc;
 				else if (mob instanceof ZombieHorse)
-					return MobHunting.getConfigManager().zombiehorseCmdDesc;
+					return this.zombiehorseCmdDesc;
 				else if (mob instanceof Stray)
-					return MobHunting.getConfigManager().strayCmdDesc;
+					return this.strayCmdDesc;
 				else if (mob instanceof Husk)
-					return MobHunting.getConfigManager().huskCmdDesc;
+					return this.huskCmdDesc;
 				else if (mob instanceof ZombieVillager)
-					return MobHunting.getConfigManager().zombieVillagerCmdDesc;
+					return this.zombieVillagerCmdDesc;
 				else if (mob instanceof Villager && ((Villager) mob).getProfession() == Profession.NITWIT)
-					return MobHunting.getConfigManager().nitwitCmdDesc;
+					return this.nitwitCmdDesc;
 
 			if (Misc.isMC110OrNewer())
 				if (mob instanceof PolarBear)
-					return MobHunting.getConfigManager().polarBearCmdDesc;
+					return this.polarBearCmdDesc;
 				else if (mob instanceof Skeleton && ((Skeleton) mob).getSkeletonType() == SkeletonType.STRAY)
-					return MobHunting.getConfigManager().strayCmdDesc;
+					return this.strayCmdDesc;
 				else if (mob instanceof Zombie && ((Zombie) mob).getVillagerProfession() == Profession.HUSK)
-					return MobHunting.getConfigManager().huskCmdDesc;
+					return this.huskCmdDesc;
 				else if (mob instanceof Villager && ((Villager) mob).getProfession() == Profession.NORMAL)
-					return MobHunting.getConfigManager().villagerCmdDesc;
+					return this.villagerCmdDesc;
 				else if (mob instanceof Villager && ((Villager) mob).getProfession() == Profession.PRIEST)
-					return MobHunting.getConfigManager().priestCmdDesc;
+					return this.priestCmdDesc;
 				else if (mob instanceof Villager && ((Villager) mob).getProfession() == Profession.BUTCHER)
-					return MobHunting.getConfigManager().butcherCmdDesc;
+					return this.butcherCmdDesc;
 				else if (mob instanceof Villager && ((Villager) mob).getProfession() == Profession.BLACKSMITH)
-					return MobHunting.getConfigManager().blacksmithCmdDesc;
+					return this.blacksmithCmdDesc;
 				else if (mob instanceof Villager && ((Villager) mob).getProfession() == Profession.LIBRARIAN)
-					return MobHunting.getConfigManager().librarianCmdDesc;
+					return this.librarianCmdDesc;
 				else if (mob instanceof Villager && ((Villager) mob).getProfession() == Profession.FARMER)
-					return MobHunting.getConfigManager().farmerCmdDesc;
+					return this.farmerCmdDesc;
 
 			if (Misc.isMC19OrNewer())
 				if (mob instanceof Shulker)
-					return MobHunting.getConfigManager().shulkerCmdDesc;
+					return this.shulkerCmdDesc;
 
 			if (Misc.isMC18OrNewer())
 				if (mob instanceof Guardian && ((Guardian) mob).isElder())
-					return MobHunting.getConfigManager().elderGuardianCmdDesc;
+					return this.elderGuardianCmdDesc;
 				else if (mob instanceof Guardian)
-					return MobHunting.getConfigManager().guardianCmdDesc;
+					return this.guardianCmdDesc;
 				else if (mob instanceof Endermite)
-					return MobHunting.getConfigManager().endermiteCmdDesc;
+					return this.endermiteCmdDesc;
 				else if (mob instanceof Rabbit)
 					if ((((Rabbit) mob).getRabbitType()) == Rabbit.Type.THE_KILLER_BUNNY)
-						return MobHunting.getConfigManager().killerrabbitCmdDesc;
+						return this.killerrabbitCmdDesc;
 					else
-						return MobHunting.getConfigManager().rabbitCmdDesc;
+						return this.rabbitCmdDesc;
 
 			// MC1.7 or older
 			if (mob instanceof Player)
-				return MobHunting.getConfigManager().pvpKillCmdDesc;
+				return this.pvpKillCmdDesc;
 			else if (mob instanceof Blaze)
-				return MobHunting.getConfigManager().blazeCmdDesc;
+				return this.blazeCmdDesc;
 			else if (mob instanceof Creeper)
-				return MobHunting.getConfigManager().creeperCmdDesc;
+				return this.creeperCmdDesc;
 			else if (mob instanceof Silverfish)
-				return MobHunting.getConfigManager().silverfishCmdDesc;
+				return this.silverfishCmdDesc;
 			else if (mob instanceof Enderman)
-				return MobHunting.getConfigManager().endermanCmdDesc;
+				return this.endermanCmdDesc;
 			else if (mob instanceof Giant)
-				return MobHunting.getConfigManager().giantCmdDesc;
+				return this.giantCmdDesc;
 			else if (mob instanceof Skeleton && ((Skeleton) mob).getSkeletonType() == SkeletonType.NORMAL)
-				return MobHunting.getConfigManager().skeletonCmdDesc;
+				return this.skeletonCmdDesc;
 			else if (mob instanceof Skeleton && ((Skeleton) mob).getSkeletonType() == SkeletonType.WITHER)
-				return MobHunting.getConfigManager().witherSkeletonCmdDesc;
+				return this.witherSkeletonCmdDesc;
 			else if (mob instanceof CaveSpider)
 				// CaveSpider is a Subclass of Spider
-				return MobHunting.getConfigManager().caveSpiderCmdDesc;
+				return this.caveSpiderCmdDesc;
 			else if (mob instanceof Spider)
-				return MobHunting.getConfigManager().spiderCmdDesc;
+				return this.spiderCmdDesc;
 			else if (mob instanceof Witch)
-				return MobHunting.getConfigManager().witchCmdDesc;
+				return this.witchCmdDesc;
 			else if (mob instanceof PigZombie)
 				// PigZombie is a subclass of Zombie
-				return MobHunting.getConfigManager().zombiePigmanCmdDesc;
+				return this.zombiePigmanCmdDesc;
 			else if (mob instanceof Zombie)
-				return MobHunting.getConfigManager().zombieCmdDesc;
+				return this.zombieCmdDesc;
 			else if (mob instanceof Ghast)
-				return MobHunting.getConfigManager().ghastCmdDesc;
+				return this.ghastCmdDesc;
 			else if (mob instanceof MagmaCube)
 				// MagmaCube is a subclass of Slime
-				return MobHunting.getConfigManager().magmaCubeCmdDesc;
+				return this.magmaCubeCmdDesc;
 			else if (mob instanceof Slime)
-				return MobHunting.getConfigManager().slimeCmdDesc;
+				return this.slimeCmdDesc;
 			else if (mob instanceof EnderDragon)
-				return MobHunting.getConfigManager().enderdragonCmdDesc;
+				return this.enderdragonCmdDesc;
 			else if (mob instanceof Wither)
-				return MobHunting.getConfigManager().witherCmdDesc;
+				return this.witherCmdDesc;
 			else if (mob instanceof IronGolem)
-				return MobHunting.getConfigManager().ironGolemCmdDesc;
+				return this.ironGolemCmdDesc;
 
 			// Passive mobs
 			else if (mob instanceof Bat)
-				return MobHunting.getConfigManager().batCmdDesc;
+				return this.batCmdDesc;
 			else if (mob instanceof Chicken)
-				return MobHunting.getConfigManager().chickenCmdDesc;
+				return this.chickenCmdDesc;
 			else if (mob instanceof Cow)
 				if (mob instanceof MushroomCow)
 					// MushroomCow is a subclass of Cow
-					return MobHunting.getConfigManager().mushroomCowCmdDesc;
+					return this.mushroomCowCmdDesc;
 				else
-					return MobHunting.getConfigManager().cowCmdDesc;
+					return this.cowCmdDesc;
 			else if (mob instanceof Horse)
-				return MobHunting.getConfigManager().horseCmdDesc;
+				return this.horseCmdDesc;
 			else if (mob instanceof Ocelot)
-				return MobHunting.getConfigManager().ocelotCmdDesc;
+				return this.ocelotCmdDesc;
 			else if (mob instanceof Pig)
-				return MobHunting.getConfigManager().pigCmdDesc;
+				return this.pigCmdDesc;
 			else if (mob instanceof Sheep)
-				return MobHunting.getConfigManager().sheepCmdDesc;
+				return this.sheepCmdDesc;
 			else if (mob instanceof Snowman)
-				return MobHunting.getConfigManager().snowmanCmdDesc;
+				return this.snowmanCmdDesc;
 			else if (mob instanceof Squid)
-				return MobHunting.getConfigManager().squidCmdDesc;
+				return this.squidCmdDesc;
 			else if (mob instanceof Villager)
-				return MobHunting.getConfigManager().villagerCmdDesc;
+				return this.villagerCmdDesc;
 			else if (mob instanceof Wolf)
-				return MobHunting.getConfigManager().wolfCmdDesc;
+				return this.wolfCmdDesc;
 			else if (mob instanceof Item && ((Item) mob).getItemStack().getType() == Material.RAW_FISH) {
 				ItemStack is = ((Item) mob).getItemStack();
 				if (is.getData().getData() == (byte) 0) {
-					return MobHunting.getConfigManager().rawFishCmdDesc;
+					return this.rawFishCmdDesc;
 				} else if (is.getData().getData() == (byte) 1) {
-					return MobHunting.getConfigManager().rawSalmonCmdDesc;
+					return this.rawSalmonCmdDesc;
 				} else if (is.getData().getData() == (byte) 2) {
-					return MobHunting.getConfigManager().clownfishCmdDesc;
+					return this.clownfishCmdDesc;
 				} else if (is.getData().getData() == (byte) 3) {
-					return MobHunting.getConfigManager().pufferfishCmdDesc;
+					return this.pufferfishCmdDesc;
 				}
 			}
 
@@ -3107,37 +3066,37 @@ public class ConfigManager extends AutoConfig {
 	}
 
 	public double getCmdRunChance(Entity killed) {
-		if (TARDISWeepingAngelsCompat.isWeepingAngelMonster(killed)) {
-			if (TARDISWeepingAngelsCompat.getMobRewardData()
-					.containsKey(TARDISWeepingAngelsCompat.getWeepingAngelMonsterType(killed).name()))
-				return TARDISWeepingAngelsCompat.getMobRewardData()
-						.get(TARDISWeepingAngelsCompat.getWeepingAngelMonsterType(killed).name()).getChance();
+		if (tARDISWeepingAngelsCompat.isWeepingAngelMonster(killed)) {
+			if (tARDISWeepingAngelsCompat.getMobRewardData()
+					.containsKey(tARDISWeepingAngelsCompat.getWeepingAngelMonsterType(killed).name()))
+				return tARDISWeepingAngelsCompat.getMobRewardData()
+						.get(tARDISWeepingAngelsCompat.getWeepingAngelMonsterType(killed).name()).getChance();
 			return 0;
 
-		} else if (MythicMobsCompat.isMythicMob(killed)) {
-			if (MythicMobsCompat.getMobRewardData().containsKey(MythicMobsCompat.getMythicMobType(killed)))
-				return MythicMobsCompat.getMobRewardData().get(MythicMobsCompat.getMythicMobType(killed)).getChance();
+		} else if (mythicMobsCompat.isMythicMob(killed)) {
+			if (mythicMobsCompat.getMobRewardData().containsKey(mythicMobsCompat.getMythicMobType(killed)))
+				return mythicMobsCompat.getMobRewardData().get(mythicMobsCompat.getMythicMobType(killed)).getChance();
 			return 0;
 
-		} else if (CitizensCompat.isNPC(killed) && CitizensCompat.isSentryOrSentinelOrSentries(killed)) {
+		} else if (citizensCompat.isNPC(killed) && citizensCompat.isSentryOrSentinelOrSentries(killed)) {
 			NPCRegistry registry = CitizensAPI.getNPCRegistry();
 			NPC npc = registry.getNPC(killed);
 			String key = String.valueOf(npc.getId());
-			if (CitizensCompat.getMobRewardData().containsKey(key)) {
-				return CitizensCompat.getMobRewardData().get(key).getChance();
+			if (citizensCompat.getMobRewardData().containsKey(key)) {
+				return citizensCompat.getMobRewardData().get(key).getChance();
 			}
 			return 0;
 
-		} else if (CustomMobsCompat.isCustomMob(killed)) {
-			if (CustomMobsCompat.getMobRewardData().containsKey(CustomMobsCompat.getCustomMobType(killed)))
-				return CustomMobsCompat.getMobRewardData().get(CustomMobsCompat.getCustomMobType(killed)).getChance();
+		} else if (customMobsCompat.isCustomMob(killed)) {
+			if (customMobsCompat.getMobRewardData().containsKey(customMobsCompat.getCustomMobType(killed)))
+				return customMobsCompat.getMobRewardData().get(customMobsCompat.getCustomMobType(killed)).getChance();
 			return 0;
 
-		} else if (MysteriousHalloweenCompat.isMysteriousHalloween(killed)) {
-			if (MysteriousHalloweenCompat.getMobRewardData()
-					.containsKey(MysteriousHalloweenCompat.getMysteriousHalloweenType(killed).name()))
-				return MysteriousHalloweenCompat.getMobRewardData()
-						.get(MysteriousHalloweenCompat.getMysteriousHalloweenType(killed).name()).getChance();
+		} else if (mysteriousHalloweenCompat.isMysteriousHalloween(killed)) {
+			if (mysteriousHalloweenCompat.getMobRewardData()
+					.containsKey(mysteriousHalloweenCompat.getMysteriousHalloweenType(killed).name()))
+				return mysteriousHalloweenCompat.getMobRewardData()
+						.get(mysteriousHalloweenCompat.getMysteriousHalloweenType(killed).name()).getChance();
 			return 0;
 
 		} else if (SmartGiantsCompat.isSmartGiants(killed)) {
@@ -3146,160 +3105,160 @@ public class ConfigManager extends AutoConfig {
 						.getChance();
 			return 0;
 
-		} else if (MyPetCompat.isMyPet(killed)) {
-			return MobHunting.getConfigManager().wolfCmdRunChance;
+		} else if (myPetCompat.isMyPet(killed)) {
+			return this.wolfCmdRunChance;
 
 		} else {
 			if (Misc.isMC112OrNewer())
 				if (killed instanceof Parrot)
-					return MobHunting.getConfigManager().parrotCmdRunChance;
+					return this.parrotCmdRunChance;
 				else if (killed instanceof Illusioner)
-					return MobHunting.getConfigManager().illusionerCmdRunChance;
+					return this.illusionerCmdRunChance;
 
 			if (Misc.isMC111OrNewer())
 				if (killed instanceof Llama)
-					return MobHunting.getConfigManager().llamaCmdRunChance;
+					return this.llamaCmdRunChance;
 				else if (killed instanceof Vex)
-					return MobHunting.getConfigManager().vexCmdRunChance;
+					return this.vexCmdRunChance;
 				else if (killed instanceof Vindicator)
-					return MobHunting.getConfigManager().vindicatorCmdRunChance;
+					return this.vindicatorCmdRunChance;
 				else if (killed instanceof Evoker)
-					return MobHunting.getConfigManager().evokerCmdRunChance;
+					return this.evokerCmdRunChance;
 				else if (killed instanceof Donkey)
-					return MobHunting.getConfigManager().donkeyCmdRunChance;
+					return this.donkeyCmdRunChance;
 				else if (killed instanceof Mule)
-					return MobHunting.getConfigManager().muleCmdRunChance;
+					return this.muleCmdRunChance;
 				else if (killed instanceof SkeletonHorse)
-					return MobHunting.getConfigManager().skeletonhorseCmdRunChance;
+					return this.skeletonhorseCmdRunChance;
 				else if (killed instanceof ZombieHorse)
-					return MobHunting.getConfigManager().zombiehorseCmdRunChance;
+					return this.zombiehorseCmdRunChance;
 				else if (killed instanceof Stray)
-					return MobHunting.getConfigManager().strayCmdRunChance;
+					return this.strayCmdRunChance;
 				else if (killed instanceof Husk)
-					return MobHunting.getConfigManager().huskCmdRunChance;
+					return this.huskCmdRunChance;
 				else if (killed instanceof ZombieVillager)
-					return MobHunting.getConfigManager().zombieVillagerCmdRunChance;
+					return this.zombieVillagerCmdRunChance;
 				else if (killed instanceof Villager && ((Villager) killed).getProfession() == Profession.NITWIT)
-					return MobHunting.getConfigManager().nitwitCmdRunChance;
+					return this.nitwitCmdRunChance;
 
 			if (Misc.isMC110OrNewer())
 				if (killed instanceof PolarBear)
-					return MobHunting.getConfigManager().polarBearCmdRunChance;
+					return this.polarBearCmdRunChance;
 				else if (killed instanceof Skeleton && ((Skeleton) killed).getSkeletonType() == SkeletonType.STRAY)
-					return MobHunting.getConfigManager().strayCmdRunChance;
+					return this.strayCmdRunChance;
 				else if (killed instanceof Zombie && ((Zombie) killed).getVillagerProfession() == Profession.HUSK)
-					return MobHunting.getConfigManager().huskCmdRunChance;
+					return this.huskCmdRunChance;
 
 				else if (killed instanceof Villager && ((Villager) killed).getProfession() == Profession.NORMAL)
-					return MobHunting.getConfigManager().villagerCmdRunChance;
+					return this.villagerCmdRunChance;
 				else if (killed instanceof Villager && ((Villager) killed).getProfession() == Profession.PRIEST)
-					return MobHunting.getConfigManager().priestCmdRunChance;
+					return this.priestCmdRunChance;
 				else if (killed instanceof Villager && ((Villager) killed).getProfession() == Profession.BUTCHER)
-					return MobHunting.getConfigManager().butcherCmdRunChance;
+					return this.butcherCmdRunChance;
 				else if (killed instanceof Villager && ((Villager) killed).getProfession() == Profession.BLACKSMITH)
-					return MobHunting.getConfigManager().blacksmithCmdRunChance;
+					return this.blacksmithCmdRunChance;
 				else if (killed instanceof Villager && ((Villager) killed).getProfession() == Profession.LIBRARIAN)
-					return MobHunting.getConfigManager().librarianCmdRunChance;
+					return this.librarianCmdRunChance;
 				else if (killed instanceof Villager && ((Villager) killed).getProfession() == Profession.FARMER)
-					return MobHunting.getConfigManager().farmerCmdRunChance;
+					return this.farmerCmdRunChance;
 
 			if (Misc.isMC19OrNewer())
 				if (killed instanceof Shulker)
-					return MobHunting.getConfigManager().shulkerCmdRunChance;
+					return this.shulkerCmdRunChance;
 
 			if (Misc.isMC18OrNewer())
 				if (killed instanceof Guardian && ((Guardian) killed).isElder())
-					return MobHunting.getConfigManager().elderGuardianCmdRunChance;
+					return this.elderGuardianCmdRunChance;
 				else if (killed instanceof Guardian)
-					return MobHunting.getConfigManager().guardianCmdRunChance;
+					return this.guardianCmdRunChance;
 				else if (killed instanceof Endermite)
-					return MobHunting.getConfigManager().endermiteCmdRunChance;
+					return this.endermiteCmdRunChance;
 				else if (killed instanceof Rabbit)
 					if ((((Rabbit) killed).getRabbitType()) == Rabbit.Type.THE_KILLER_BUNNY)
-						return MobHunting.getConfigManager().killerrabbitCmdRunChance;
+						return this.killerrabbitCmdRunChance;
 					else
-						return MobHunting.getConfigManager().rabbitCmdRunChance;
+						return this.rabbitCmdRunChance;
 
 			// MC1.7 or older
 			if (killed instanceof Player) {
 				return pvpKillCmdRunChance;
 			} else if (killed instanceof Blaze)
-				return MobHunting.getConfigManager().blazeCmdRunChance;
+				return this.blazeCmdRunChance;
 			else if (killed instanceof Creeper)
-				return MobHunting.getConfigManager().creeperCmdRunChance;
+				return this.creeperCmdRunChance;
 			else if (killed instanceof Silverfish)
-				return MobHunting.getConfigManager().silverfishCmdRunChance;
+				return this.silverfishCmdRunChance;
 			else if (killed instanceof Enderman)
-				return MobHunting.getConfigManager().endermanCmdRunChance;
+				return this.endermanCmdRunChance;
 			else if (killed instanceof Giant)
-				return MobHunting.getConfigManager().giantCmdRunChance;
+				return this.giantCmdRunChance;
 			else if (killed instanceof Skeleton && ((Skeleton) killed).getSkeletonType() == SkeletonType.NORMAL)
-				return MobHunting.getConfigManager().skeletonCmdRunChance;
+				return this.skeletonCmdRunChance;
 			else if (killed instanceof Skeleton && ((Skeleton) killed).getSkeletonType() == SkeletonType.WITHER)
-				return MobHunting.getConfigManager().witherSkeletonCmdRunChance;
+				return this.witherSkeletonCmdRunChance;
 			else if (killed instanceof CaveSpider)
 				// CaveSpider is a subclass of Spider
-				return MobHunting.getConfigManager().caveSpiderRunChance;
+				return this.caveSpiderRunChance;
 			else if (killed instanceof Spider)
-				return MobHunting.getConfigManager().spiderCmdRunChance;
+				return this.spiderCmdRunChance;
 			else if (killed instanceof Witch)
-				return MobHunting.getConfigManager().witchCmdRunChance;
+				return this.witchCmdRunChance;
 			else if (killed instanceof PigZombie)
 				// PigZombie is a subclass of Zombie.
-				return MobHunting.getConfigManager().zombiepigmanCmdRunChance;
+				return this.zombiepigmanCmdRunChance;
 			else if (killed instanceof Zombie)
-				return MobHunting.getConfigManager().zombieCmdRunChance;
+				return this.zombieCmdRunChance;
 			else if (killed instanceof Ghast)
-				return MobHunting.getConfigManager().ghastCmdRunChance;
+				return this.ghastCmdRunChance;
 			else if (killed instanceof MagmaCube)
 				// MagmaCube is a subclass of Slime
-				return MobHunting.getConfigManager().magmaCubeCmdRunChance;
+				return this.magmaCubeCmdRunChance;
 			else if (killed instanceof Slime)
-				return MobHunting.getConfigManager().slimeCmdRunChance;
+				return this.slimeCmdRunChance;
 			else if (killed instanceof EnderDragon)
-				return MobHunting.getConfigManager().enderdragonCmdRunChance;
+				return this.enderdragonCmdRunChance;
 			else if (killed instanceof Wither)
-				return MobHunting.getConfigManager().witherCmdRunChance;
+				return this.witherCmdRunChance;
 			else if (killed instanceof IronGolem)
-				return MobHunting.getConfigManager().ironGolemCmdRunChance;
+				return this.ironGolemCmdRunChance;
 
 			// Passive mobs
 			else if (killed instanceof Bat)
-				return MobHunting.getConfigManager().batCmdRunChance;
+				return this.batCmdRunChance;
 			else if (killed instanceof Chicken)
-				return MobHunting.getConfigManager().chickenCmdRunChance;
+				return this.chickenCmdRunChance;
 			else if (killed instanceof Cow)
 				if (killed instanceof MushroomCow)
 					// MushroomCow is a subclass of Cow
-					return MobHunting.getConfigManager().mushroomCowCmdRunChance;
+					return this.mushroomCowCmdRunChance;
 				else
-					return MobHunting.getConfigManager().cowCmdRunChance;
+					return this.cowCmdRunChance;
 			else if (killed instanceof Horse)
-				return MobHunting.getConfigManager().horseCmdRunChance;
+				return this.horseCmdRunChance;
 			else if (killed instanceof Ocelot)
-				return MobHunting.getConfigManager().ocelotCmdRunChance;
+				return this.ocelotCmdRunChance;
 			else if (killed instanceof Pig)
-				return MobHunting.getConfigManager().pigCmdRunChance;
+				return this.pigCmdRunChance;
 			else if (killed instanceof Sheep)
-				return MobHunting.getConfigManager().sheepCmdRunChance;
+				return this.sheepCmdRunChance;
 			else if (killed instanceof Snowman)
-				return MobHunting.getConfigManager().snowmanCmdRunChance;
+				return this.snowmanCmdRunChance;
 			else if (killed instanceof Squid)
-				return MobHunting.getConfigManager().squidCmdRunChance;
+				return this.squidCmdRunChance;
 			else if (killed instanceof Villager)
-				return MobHunting.getConfigManager().villagerCmdRunChance;
+				return this.villagerCmdRunChance;
 			else if (killed instanceof Wolf)
-				return MobHunting.getConfigManager().wolfCmdRunChance;
+				return this.wolfCmdRunChance;
 			else if (killed instanceof Item && ((Item) killed).getItemStack().getType() == Material.RAW_FISH) {
 				ItemStack is = ((Item) killed).getItemStack();
 				if (is.getData().getData() == (byte) 0) {
-					return MobHunting.getConfigManager().rawFishCmdRunChance;
+					return this.rawFishCmdRunChance;
 				} else if (is.getData().getData() == (byte) 1) {
-					return MobHunting.getConfigManager().rawSalmonCmdRunChance;
+					return this.rawSalmonCmdRunChance;
 				} else if (is.getData().getData() == (byte) 2) {
-					return MobHunting.getConfigManager().clownfishCmdRunChance;
+					return this.clownfishCmdRunChance;
 				} else if (is.getData().getData() == (byte) 3) {
-					return MobHunting.getConfigManager().pufferfishCmdRunChance;
+					return this.pufferfishCmdRunChance;
 				}
 			}
 		}
@@ -3307,40 +3266,40 @@ public class ConfigManager extends AutoConfig {
 	}
 
 	public double getMcMMOChance(Entity killed) {
-		if (TARDISWeepingAngelsCompat.isWeepingAngelMonster(killed)) {
-			if (TARDISWeepingAngelsCompat.getMobRewardData()
-					.containsKey(TARDISWeepingAngelsCompat.getWeepingAngelMonsterType(killed).name()))
-				return TARDISWeepingAngelsCompat.getMobRewardData()
-						.get(TARDISWeepingAngelsCompat.getWeepingAngelMonsterType(killed).name())
+		if (tARDISWeepingAngelsCompat.isWeepingAngelMonster(killed)) {
+			if (tARDISWeepingAngelsCompat.getMobRewardData()
+					.containsKey(tARDISWeepingAngelsCompat.getWeepingAngelMonsterType(killed).name()))
+				return tARDISWeepingAngelsCompat.getMobRewardData()
+						.get(tARDISWeepingAngelsCompat.getWeepingAngelMonsterType(killed).name())
 						.getMcMMOSkillRewardChance();
 			return 0;
 
-		} else if (MythicMobsCompat.isMythicMob(killed)) {
-			if (MythicMobsCompat.getMobRewardData().containsKey(MythicMobsCompat.getMythicMobType(killed)))
-				return MythicMobsCompat.getMobRewardData().get(MythicMobsCompat.getMythicMobType(killed))
+		} else if (mythicMobsCompat.isMythicMob(killed)) {
+			if (mythicMobsCompat.getMobRewardData().containsKey(mythicMobsCompat.getMythicMobType(killed)))
+				return mythicMobsCompat.getMobRewardData().get(mythicMobsCompat.getMythicMobType(killed))
 						.getMcMMOSkillRewardChance();
 			return 0;
 
-		} else if (CitizensCompat.isNPC(killed) && CitizensCompat.isSentryOrSentinelOrSentries(killed)) {
+		} else if (citizensCompat.isNPC(killed) && citizensCompat.isSentryOrSentinelOrSentries(killed)) {
 			NPCRegistry registry = CitizensAPI.getNPCRegistry();
 			NPC npc = registry.getNPC(killed);
 			String key = String.valueOf(npc.getId());
-			if (CitizensCompat.getMobRewardData().containsKey(key)) {
-				return CitizensCompat.getMobRewardData().get(key).getMcMMOSkillRewardChance();
+			if (citizensCompat.getMobRewardData().containsKey(key)) {
+				return citizensCompat.getMobRewardData().get(key).getMcMMOSkillRewardChance();
 			}
 			return 0;
 
-		} else if (CustomMobsCompat.isCustomMob(killed)) {
-			if (CustomMobsCompat.getMobRewardData().containsKey(CustomMobsCompat.getCustomMobType(killed)))
-				return CustomMobsCompat.getMobRewardData().get(CustomMobsCompat.getCustomMobType(killed))
+		} else if (customMobsCompat.isCustomMob(killed)) {
+			if (customMobsCompat.getMobRewardData().containsKey(customMobsCompat.getCustomMobType(killed)))
+				return customMobsCompat.getMobRewardData().get(customMobsCompat.getCustomMobType(killed))
 						.getMcMMOSkillRewardChance();
 			return 0;
 
-		} else if (MysteriousHalloweenCompat.isMysteriousHalloween(killed)) {
-			if (MysteriousHalloweenCompat.getMobRewardData()
-					.containsKey(MysteriousHalloweenCompat.getMysteriousHalloweenType(killed).name()))
-				return MysteriousHalloweenCompat.getMobRewardData()
-						.get(MysteriousHalloweenCompat.getMysteriousHalloweenType(killed).name())
+		} else if (mysteriousHalloweenCompat.isMysteriousHalloween(killed)) {
+			if (mysteriousHalloweenCompat.getMobRewardData()
+					.containsKey(mysteriousHalloweenCompat.getMysteriousHalloweenType(killed).name()))
+				return mysteriousHalloweenCompat.getMobRewardData()
+						.get(mysteriousHalloweenCompat.getMysteriousHalloweenType(killed).name())
 						.getMcMMOSkillRewardChance();
 			return 0;
 
@@ -3350,160 +3309,160 @@ public class ConfigManager extends AutoConfig {
 						.getMcMMOSkillRewardChance();
 			return 0;
 
-		} else if (MyPetCompat.isMyPet(killed)) {
-			return MobHunting.getConfigManager().wolfMcMMOSkillRewardChance;
+		} else if (myPetCompat.isMyPet(killed)) {
+			return this.wolfMcMMOSkillRewardChance;
 
 		} else {
 			if (Misc.isMC112OrNewer())
 				if (killed instanceof Parrot)
-					return MobHunting.getConfigManager().parrotMcMMOSkillRewardChance;
+					return this.parrotMcMMOSkillRewardChance;
 				else if (killed instanceof Illusioner)
-					return MobHunting.getConfigManager().illusionerMcMMOSkillRewardChance;
+					return this.illusionerMcMMOSkillRewardChance;
 
 			if (Misc.isMC111OrNewer())
 				if (killed instanceof Llama)
-					return MobHunting.getConfigManager().llamaMcMMOSkillRewardChance;
+					return this.llamaMcMMOSkillRewardChance;
 				else if (killed instanceof Vex)
-					return MobHunting.getConfigManager().vexMcMMOSkillRewardChance;
+					return this.vexMcMMOSkillRewardChance;
 				else if (killed instanceof Vindicator)
-					return MobHunting.getConfigManager().vindicatorMcMMOSkillRewardChance;
+					return this.vindicatorMcMMOSkillRewardChance;
 				else if (killed instanceof Evoker)
-					return MobHunting.getConfigManager().evokerMcMMOSkillRewardChance;
+					return this.evokerMcMMOSkillRewardChance;
 				else if (killed instanceof Donkey)
-					return MobHunting.getConfigManager().donkeyMcMMOSkillRewardChance;
+					return this.donkeyMcMMOSkillRewardChance;
 				else if (killed instanceof Mule)
-					return MobHunting.getConfigManager().muleMcMMOSkillRewardChance;
+					return this.muleMcMMOSkillRewardChance;
 				else if (killed instanceof SkeletonHorse)
-					return MobHunting.getConfigManager().skeletonHorseMcMMOSkillRewardChance;
+					return this.skeletonHorseMcMMOSkillRewardChance;
 				else if (killed instanceof ZombieHorse)
-					return MobHunting.getConfigManager().zombieHorseMcMMOSkillRewardChance;
+					return this.zombieHorseMcMMOSkillRewardChance;
 				else if (killed instanceof Stray)
-					return MobHunting.getConfigManager().strayMcMMOSkillRewardChance;
+					return this.strayMcMMOSkillRewardChance;
 				else if (killed instanceof Husk)
-					return MobHunting.getConfigManager().huskMcMMOSkillRewardChance;
+					return this.huskMcMMOSkillRewardChance;
 				else if (killed instanceof ZombieVillager)
-					return MobHunting.getConfigManager().zombieVillagerMcMMOSkillRewardChance;
+					return this.zombieVillagerMcMMOSkillRewardChance;
 				else if (killed instanceof Villager && ((Villager) killed).getProfession() == Profession.NITWIT)
-					return MobHunting.getConfigManager().nitwitMcMMOSkillRewardChance;
+					return this.nitwitMcMMOSkillRewardChance;
 
 			if (Misc.isMC110OrNewer())
 				if (killed instanceof PolarBear)
-					return MobHunting.getConfigManager().polarBearMcMMOSkillRewardChance;
+					return this.polarBearMcMMOSkillRewardChance;
 				else if (killed instanceof Skeleton && ((Skeleton) killed).getSkeletonType() == SkeletonType.STRAY)
-					return MobHunting.getConfigManager().strayMcMMOSkillRewardChance;
+					return this.strayMcMMOSkillRewardChance;
 				else if (killed instanceof Zombie && ((Zombie) killed).getVillagerProfession() == Profession.HUSK)
-					return MobHunting.getConfigManager().huskMcMMOSkillRewardChance;
+					return this.huskMcMMOSkillRewardChance;
 
 				else if (killed instanceof Villager && ((Villager) killed).getProfession() == Profession.NORMAL)
-					return MobHunting.getConfigManager().villagerMcMMOSkillRewardChance;
+					return this.villagerMcMMOSkillRewardChance;
 				else if (killed instanceof Villager && ((Villager) killed).getProfession() == Profession.PRIEST)
-					return MobHunting.getConfigManager().priestMcMMOSkillRewardChance;
+					return this.priestMcMMOSkillRewardChance;
 				else if (killed instanceof Villager && ((Villager) killed).getProfession() == Profession.BUTCHER)
-					return MobHunting.getConfigManager().butcherMcMMOSkillRewardChance;
+					return this.butcherMcMMOSkillRewardChance;
 				else if (killed instanceof Villager && ((Villager) killed).getProfession() == Profession.BLACKSMITH)
-					return MobHunting.getConfigManager().blacksmithMcMMOSkillRewardChance;
+					return this.blacksmithMcMMOSkillRewardChance;
 				else if (killed instanceof Villager && ((Villager) killed).getProfession() == Profession.LIBRARIAN)
-					return MobHunting.getConfigManager().librarianMcMMOSkillRewardChance;
+					return this.librarianMcMMOSkillRewardChance;
 				else if (killed instanceof Villager && ((Villager) killed).getProfession() == Profession.FARMER)
-					return MobHunting.getConfigManager().farmerMcMMOSkillRewardChance;
+					return this.farmerMcMMOSkillRewardChance;
 
 			if (Misc.isMC19OrNewer())
 				if (killed instanceof Shulker)
-					return MobHunting.getConfigManager().shulkerMcMMOSkillRewardChance;
+					return this.shulkerMcMMOSkillRewardChance;
 
 			if (Misc.isMC18OrNewer())
 				if (killed instanceof Guardian && ((Guardian) killed).isElder())
-					return MobHunting.getConfigManager().elderGuardianMcMMOSkillRewardChance;
+					return this.elderGuardianMcMMOSkillRewardChance;
 				else if (killed instanceof Guardian)
-					return MobHunting.getConfigManager().guardianMcMMOSkillRewardChance;
+					return this.guardianMcMMOSkillRewardChance;
 				else if (killed instanceof Endermite)
-					return MobHunting.getConfigManager().endermiteMcMMOSkillRewardChance;
+					return this.endermiteMcMMOSkillRewardChance;
 				else if (killed instanceof Rabbit)
 					if ((((Rabbit) killed).getRabbitType()) == Rabbit.Type.THE_KILLER_BUNNY)
-						return MobHunting.getConfigManager().killerRabbitMcMMOSkillRewardChance;
+						return this.killerRabbitMcMMOSkillRewardChance;
 					else
-						return MobHunting.getConfigManager().rabbitMcMMOSkillRewardChance;
+						return this.rabbitMcMMOSkillRewardChance;
 
 			// MC1.7 or older
 			if (killed instanceof Player) {
-				return MobHunting.getConfigManager().pvpPlayerMcMMOSkillRewardChance;
+				return this.pvpPlayerMcMMOSkillRewardChance;
 			} else if (killed instanceof Blaze)
-				return MobHunting.getConfigManager().blazeMcMMOSkillRewardChance;
+				return this.blazeMcMMOSkillRewardChance;
 			else if (killed instanceof Creeper)
-				return MobHunting.getConfigManager().creeperMcMMOSkillRewardChance;
+				return this.creeperMcMMOSkillRewardChance;
 			else if (killed instanceof Silverfish)
-				return MobHunting.getConfigManager().silverfishMcMMOSkillRewardChance;
+				return this.silverfishMcMMOSkillRewardChance;
 			else if (killed instanceof Enderman)
-				return MobHunting.getConfigManager().endermanMcMMOSkillRewardChance;
+				return this.endermanMcMMOSkillRewardChance;
 			else if (killed instanceof Giant)
-				return MobHunting.getConfigManager().giantMcMMOSkillRewardChance;
+				return this.giantMcMMOSkillRewardChance;
 			else if (killed instanceof Skeleton && ((Skeleton) killed).getSkeletonType() == SkeletonType.NORMAL)
-				return MobHunting.getConfigManager().skeletonMcMMOSkillRewardChance;
+				return this.skeletonMcMMOSkillRewardChance;
 			else if (killed instanceof Skeleton && ((Skeleton) killed).getSkeletonType() == SkeletonType.WITHER)
-				return MobHunting.getConfigManager().witherSkeletonMcMMOSkillRewardChance;
+				return this.witherSkeletonMcMMOSkillRewardChance;
 			else if (killed instanceof CaveSpider)
 				// CaveSpider is a subclass of Spider
-				return MobHunting.getConfigManager().caveSpiderMcMMOSkillRewardChance;
+				return this.caveSpiderMcMMOSkillRewardChance;
 			else if (killed instanceof Spider)
-				return MobHunting.getConfigManager().spiderMcMMOSkillRewardChance;
+				return this.spiderMcMMOSkillRewardChance;
 			else if (killed instanceof Witch)
-				return MobHunting.getConfigManager().witchMcMMOSkillRewardChance;
+				return this.witchMcMMOSkillRewardChance;
 			else if (killed instanceof PigZombie)
 				// PigZombie is a subclass of Zombie.
-				return MobHunting.getConfigManager().zombiePigManMcMMOSkillRewardChance;
+				return this.zombiePigManMcMMOSkillRewardChance;
 			else if (killed instanceof Zombie)
-				return MobHunting.getConfigManager().zombieMcMMOSkillRewardChance;
+				return this.zombieMcMMOSkillRewardChance;
 			else if (killed instanceof Ghast)
-				return MobHunting.getConfigManager().ghastMcMMOSkillRewardChance;
+				return this.ghastMcMMOSkillRewardChance;
 			else if (killed instanceof MagmaCube)
 				// MagmaCube is a subclass of Slime
-				return MobHunting.getConfigManager().magmaCubeMcMMOSkillRewardChance;
+				return this.magmaCubeMcMMOSkillRewardChance;
 			else if (killed instanceof Slime)
-				return MobHunting.getConfigManager().slimeMcMMOSkillRewardChance;
+				return this.slimeMcMMOSkillRewardChance;
 			else if (killed instanceof EnderDragon)
-				return MobHunting.getConfigManager().enderdragonMcMMOSkillRewardChance;
+				return this.enderdragonMcMMOSkillRewardChance;
 			else if (killed instanceof Wither)
-				return MobHunting.getConfigManager().witherMcMMOSkillRewardChance;
+				return this.witherMcMMOSkillRewardChance;
 			else if (killed instanceof IronGolem)
-				return MobHunting.getConfigManager().ironGolemMcMMOSkillRewardChance;
+				return this.ironGolemMcMMOSkillRewardChance;
 
 			// Passive mobs
 			else if (killed instanceof Bat)
-				return MobHunting.getConfigManager().batMcMMOSkillRewardChance;
+				return this.batMcMMOSkillRewardChance;
 			else if (killed instanceof Chicken)
-				return MobHunting.getConfigManager().chickenMcMMOSkillRewardChance;
+				return this.chickenMcMMOSkillRewardChance;
 			else if (killed instanceof Cow)
 				if (killed instanceof MushroomCow)
 					// MushroomCow is a subclass of Cow
-					return MobHunting.getConfigManager().mushroomCowMcMMOSkillRewardChance;
+					return this.mushroomCowMcMMOSkillRewardChance;
 				else
-					return MobHunting.getConfigManager().cowMcMMOSkillRewardChance;
+					return this.cowMcMMOSkillRewardChance;
 			else if (killed instanceof Horse)
-				return MobHunting.getConfigManager().horseMcMMOSkillRewardChance;
+				return this.horseMcMMOSkillRewardChance;
 			else if (killed instanceof Ocelot)
-				return MobHunting.getConfigManager().ocelotMcMMOSkillRewardChance;
+				return this.ocelotMcMMOSkillRewardChance;
 			else if (killed instanceof Pig)
-				return MobHunting.getConfigManager().pigMcMMOSkillRewardChance;
+				return this.pigMcMMOSkillRewardChance;
 			else if (killed instanceof Sheep)
-				return MobHunting.getConfigManager().sheepMcMMOSkillRewardChance;
+				return this.sheepMcMMOSkillRewardChance;
 			else if (killed instanceof Snowman)
-				return MobHunting.getConfigManager().snowmanMcMMOSkillRewardChance;
+				return this.snowmanMcMMOSkillRewardChance;
 			else if (killed instanceof Squid)
-				return MobHunting.getConfigManager().squidMcMMOSkillRewardChance;
+				return this.squidMcMMOSkillRewardChance;
 			else if (killed instanceof Villager)
-				return MobHunting.getConfigManager().villagerMcMMOSkillRewardChance;
+				return this.villagerMcMMOSkillRewardChance;
 			else if (killed instanceof Wolf)
-				return MobHunting.getConfigManager().wolfMcMMOSkillRewardChance;
+				return this.wolfMcMMOSkillRewardChance;
 			else if (killed instanceof Item && ((Item) killed).getItemStack().getType() == Material.RAW_FISH) {
 				ItemStack is = ((Item) killed).getItemStack();
 				if (is.getData().getData() == (byte) 0) {
-					return MobHunting.getConfigManager().rawfishMcMMOSkillRewardChance;
+					return this.rawfishMcMMOSkillRewardChance;
 				} else if (is.getData().getData() == (byte) 1) {
-					return MobHunting.getConfigManager().rawsalmonMcMMOSkillRewardChance;
+					return this.rawsalmonMcMMOSkillRewardChance;
 				} else if (is.getData().getData() == (byte) 2) {
-					return MobHunting.getConfigManager().clownfishMcMMOSkillRewardChance;
+					return this.clownfishMcMMOSkillRewardChance;
 				} else if (is.getData().getData() == (byte) 3) {
-					return MobHunting.getConfigManager().pufferfishMcMMOSkillRewardChance;
+					return this.pufferfishMcMMOSkillRewardChance;
 				}
 			}
 		}
@@ -3528,7 +3487,7 @@ public class ConfigManager extends AutoConfig {
 				return 0;
 		} else if (str.contains(":")) {
 			String[] str1 = str.split(":");
-			Integer prize = MobHunting.getMobHuntingManager().mRand.nextInt(Integer.valueOf(str1[1]))
+			Integer prize = mobHuntingManager.mRand.nextInt(Integer.valueOf(str1[1]))
 					+ Integer.valueOf(str1[0]);
 			return prize;
 		} else
@@ -3536,40 +3495,40 @@ public class ConfigManager extends AutoConfig {
 	}
 
 	public int getMcMMOLevel(Entity killed) {
-		if (TARDISWeepingAngelsCompat.isWeepingAngelMonster(killed)) {
-			if (TARDISWeepingAngelsCompat.getMobRewardData()
-					.containsKey(TARDISWeepingAngelsCompat.getWeepingAngelMonsterType(killed).name()))
-				return TARDISWeepingAngelsCompat.getMobRewardData()
-						.get(TARDISWeepingAngelsCompat.getWeepingAngelMonsterType(killed).name())
+		if (tARDISWeepingAngelsCompat.isWeepingAngelMonster(killed)) {
+			if (tARDISWeepingAngelsCompat.getMobRewardData()
+					.containsKey(tARDISWeepingAngelsCompat.getWeepingAngelMonsterType(killed).name()))
+				return tARDISWeepingAngelsCompat.getMobRewardData()
+						.get(tARDISWeepingAngelsCompat.getWeepingAngelMonsterType(killed).name())
 						.getMcMMOSkillRewardAmount();
 			return 0;
 
-		} else if (MythicMobsCompat.isMythicMob(killed)) {
-			if (MythicMobsCompat.getMobRewardData().containsKey(MythicMobsCompat.getMythicMobType(killed)))
-				return MythicMobsCompat.getMobRewardData().get(MythicMobsCompat.getMythicMobType(killed))
+		} else if (mythicMobsCompat.isMythicMob(killed)) {
+			if (mythicMobsCompat.getMobRewardData().containsKey(mythicMobsCompat.getMythicMobType(killed)))
+				return mythicMobsCompat.getMobRewardData().get(mythicMobsCompat.getMythicMobType(killed))
 						.getMcMMOSkillRewardAmount();
 			return 0;
 
-		} else if (CitizensCompat.isNPC(killed) && CitizensCompat.isSentryOrSentinelOrSentries(killed)) {
+		} else if (citizensCompat.isNPC(killed) && citizensCompat.isSentryOrSentinelOrSentries(killed)) {
 			NPCRegistry registry = CitizensAPI.getNPCRegistry();
 			NPC npc = registry.getNPC(killed);
 			String key = String.valueOf(npc.getId());
-			if (CitizensCompat.getMobRewardData().containsKey(key)) {
-				return CitizensCompat.getMobRewardData().get(key).getMcMMOSkillRewardAmount();
+			if (citizensCompat.getMobRewardData().containsKey(key)) {
+				return citizensCompat.getMobRewardData().get(key).getMcMMOSkillRewardAmount();
 			}
 			return 0;
 
-		} else if (CustomMobsCompat.isCustomMob(killed)) {
-			if (CustomMobsCompat.getMobRewardData().containsKey(CustomMobsCompat.getCustomMobType(killed)))
-				return CustomMobsCompat.getMobRewardData().get(CustomMobsCompat.getCustomMobType(killed))
+		} else if (customMobsCompat.isCustomMob(killed)) {
+			if (customMobsCompat.getMobRewardData().containsKey(customMobsCompat.getCustomMobType(killed)))
+				return customMobsCompat.getMobRewardData().get(customMobsCompat.getCustomMobType(killed))
 						.getMcMMOSkillRewardAmount();
 			return 0;
 
-		} else if (MysteriousHalloweenCompat.isMysteriousHalloween(killed)) {
-			if (MysteriousHalloweenCompat.getMobRewardData()
-					.containsKey(MysteriousHalloweenCompat.getMysteriousHalloweenType(killed).name()))
-				return MysteriousHalloweenCompat.getMobRewardData()
-						.get(MysteriousHalloweenCompat.getMysteriousHalloweenType(killed).name())
+		} else if (mysteriousHalloweenCompat.isMysteriousHalloween(killed)) {
+			if (mysteriousHalloweenCompat.getMobRewardData()
+					.containsKey(mysteriousHalloweenCompat.getMysteriousHalloweenType(killed).name()))
+				return mysteriousHalloweenCompat.getMobRewardData()
+						.get(mysteriousHalloweenCompat.getMysteriousHalloweenType(killed).name())
 						.getMcMMOSkillRewardAmount();
 			return 0;
 
@@ -3579,160 +3538,160 @@ public class ConfigManager extends AutoConfig {
 						.getMcMMOSkillRewardAmount();
 			return 0;
 
-		} else if (MyPetCompat.isMyPet(killed)) {
-			return getMcMMOXP(killed, MobHunting.getConfigManager().wolfMcMMOSkillRewardAmount);
+		} else if (myPetCompat.isMyPet(killed)) {
+			return getMcMMOXP(killed, this.wolfMcMMOSkillRewardAmount);
 
 		} else {
 			if (Misc.isMC112OrNewer())
 				if (killed instanceof Parrot)
-					return getMcMMOXP(killed, MobHunting.getConfigManager().parrotMcMMOSkillRewardAmount);
+					return getMcMMOXP(killed, this.parrotMcMMOSkillRewardAmount);
 				else if (killed instanceof Illusioner)
-					return getMcMMOXP(killed, MobHunting.getConfigManager().illusionerMcMMOSkillRewardAmount);
+					return getMcMMOXP(killed, this.illusionerMcMMOSkillRewardAmount);
 
 			if (Misc.isMC111OrNewer())
 				if (killed instanceof Llama)
-					return getMcMMOXP(killed, MobHunting.getConfigManager().llamaMcMMOSkillRewardAmount);
+					return getMcMMOXP(killed, this.llamaMcMMOSkillRewardAmount);
 				else if (killed instanceof Vex)
-					return getMcMMOXP(killed, MobHunting.getConfigManager().vexMcMMOSkillRewardAmount);
+					return getMcMMOXP(killed, this.vexMcMMOSkillRewardAmount);
 				else if (killed instanceof Vindicator)
-					return getMcMMOXP(killed, MobHunting.getConfigManager().vindicatorMcMMOSkillRewardAmount);
+					return getMcMMOXP(killed, this.vindicatorMcMMOSkillRewardAmount);
 				else if (killed instanceof Evoker)
-					return getMcMMOXP(killed, MobHunting.getConfigManager().evokerMcMMOSkillRewardAmount);
+					return getMcMMOXP(killed, this.evokerMcMMOSkillRewardAmount);
 				else if (killed instanceof Donkey)
-					return getMcMMOXP(killed, MobHunting.getConfigManager().donkeyMcMMOSkillRewardAmount);
+					return getMcMMOXP(killed, this.donkeyMcMMOSkillRewardAmount);
 				else if (killed instanceof Mule)
-					return getMcMMOXP(killed, MobHunting.getConfigManager().muleMcMMOSkillRewardAmount);
+					return getMcMMOXP(killed, this.muleMcMMOSkillRewardAmount);
 				else if (killed instanceof SkeletonHorse)
-					return getMcMMOXP(killed, MobHunting.getConfigManager().skeletonHorseMcMMOSkillRewardAmount);
+					return getMcMMOXP(killed, this.skeletonHorseMcMMOSkillRewardAmount);
 				else if (killed instanceof ZombieHorse)
-					return getMcMMOXP(killed, MobHunting.getConfigManager().zombieHorseMcMMOSkillRewardAmount);
+					return getMcMMOXP(killed, this.zombieHorseMcMMOSkillRewardAmount);
 				else if (killed instanceof Stray)
-					return getMcMMOXP(killed, MobHunting.getConfigManager().strayMcMMOSkillRewardAmount);
+					return getMcMMOXP(killed, this.strayMcMMOSkillRewardAmount);
 				else if (killed instanceof Husk)
-					return getMcMMOXP(killed, MobHunting.getConfigManager().huskMcMMOSkillRewardAmount);
+					return getMcMMOXP(killed, this.huskMcMMOSkillRewardAmount);
 				else if (killed instanceof ZombieVillager)
-					return getMcMMOXP(killed, MobHunting.getConfigManager().zombieVillagerMcMMOSkillRewardAmount);
+					return getMcMMOXP(killed, this.zombieVillagerMcMMOSkillRewardAmount);
 				else if (killed instanceof Villager && ((Villager) killed).getProfession() == Profession.NITWIT)
-					return getMcMMOXP(killed, MobHunting.getConfigManager().nitwitMcMMOSkillRewardAmount);
+					return getMcMMOXP(killed, this.nitwitMcMMOSkillRewardAmount);
 
 			if (Misc.isMC110OrNewer())
 				if (killed instanceof PolarBear)
-					return getMcMMOXP(killed, MobHunting.getConfigManager().polarBearMcMMOSkillRewardAmount);
+					return getMcMMOXP(killed, this.polarBearMcMMOSkillRewardAmount);
 				else if (killed instanceof Skeleton && ((Skeleton) killed).getSkeletonType() == SkeletonType.STRAY)
-					return getMcMMOXP(killed, MobHunting.getConfigManager().strayMcMMOSkillRewardAmount);
+					return getMcMMOXP(killed, this.strayMcMMOSkillRewardAmount);
 				else if (killed instanceof Zombie && ((Zombie) killed).getVillagerProfession() == Profession.HUSK)
-					return getMcMMOXP(killed, MobHunting.getConfigManager().huskMcMMOSkillRewardAmount);
+					return getMcMMOXP(killed, this.huskMcMMOSkillRewardAmount);
 
 				else if (killed instanceof Villager && ((Villager) killed).getProfession() == Profession.NORMAL)
-					return getMcMMOXP(killed, MobHunting.getConfigManager().villagerMcMMOSkillRewardAmount);
+					return getMcMMOXP(killed, this.villagerMcMMOSkillRewardAmount);
 				else if (killed instanceof Villager && ((Villager) killed).getProfession() == Profession.PRIEST)
-					return getMcMMOXP(killed, MobHunting.getConfigManager().priestMcMMOSkillRewardAmount);
+					return getMcMMOXP(killed, this.priestMcMMOSkillRewardAmount);
 				else if (killed instanceof Villager && ((Villager) killed).getProfession() == Profession.BUTCHER)
-					return getMcMMOXP(killed, MobHunting.getConfigManager().butcherMcMMOSkillRewardAmount);
+					return getMcMMOXP(killed, this.butcherMcMMOSkillRewardAmount);
 				else if (killed instanceof Villager && ((Villager) killed).getProfession() == Profession.BLACKSMITH)
-					return getMcMMOXP(killed, MobHunting.getConfigManager().blacksmithMcMMOSkillRewardAmount);
+					return getMcMMOXP(killed, this.blacksmithMcMMOSkillRewardAmount);
 				else if (killed instanceof Villager && ((Villager) killed).getProfession() == Profession.LIBRARIAN)
-					return getMcMMOXP(killed, MobHunting.getConfigManager().librarianMcMMOSkillRewardAmount);
+					return getMcMMOXP(killed, this.librarianMcMMOSkillRewardAmount);
 				else if (killed instanceof Villager && ((Villager) killed).getProfession() == Profession.FARMER)
-					return getMcMMOXP(killed, MobHunting.getConfigManager().farmerMcMMOSkillRewardAmount);
+					return getMcMMOXP(killed, this.farmerMcMMOSkillRewardAmount);
 
 			if (Misc.isMC19OrNewer())
 				if (killed instanceof Shulker)
-					return getMcMMOXP(killed, MobHunting.getConfigManager().shulkerMcMMOSkillRewardAmount);
+					return getMcMMOXP(killed, this.shulkerMcMMOSkillRewardAmount);
 
 			if (Misc.isMC18OrNewer())
 				if (killed instanceof Guardian && ((Guardian) killed).isElder())
-					return getMcMMOXP(killed, MobHunting.getConfigManager().elderGuardianMcMMOSkillRewardAmount);
+					return getMcMMOXP(killed, this.elderGuardianMcMMOSkillRewardAmount);
 				else if (killed instanceof Guardian)
-					return getMcMMOXP(killed, MobHunting.getConfigManager().guardianMcMMOSkillRewardAmount);
+					return getMcMMOXP(killed, this.guardianMcMMOSkillRewardAmount);
 				else if (killed instanceof Endermite)
-					return getMcMMOXP(killed, MobHunting.getConfigManager().endermiteMcMMOSkillRewardAmount);
+					return getMcMMOXP(killed, this.endermiteMcMMOSkillRewardAmount);
 				else if (killed instanceof Rabbit)
 					if ((((Rabbit) killed).getRabbitType()) == Rabbit.Type.THE_KILLER_BUNNY)
-						return getMcMMOXP(killed, MobHunting.getConfigManager().killerRabbitMcMMOSkillRewardAmount);
+						return getMcMMOXP(killed, this.killerRabbitMcMMOSkillRewardAmount);
 					else
-						return getMcMMOXP(killed, MobHunting.getConfigManager().rabbitMcMMOSkillRewardAmount);
+						return getMcMMOXP(killed, this.rabbitMcMMOSkillRewardAmount);
 
 			// MC1.7 or older
 			if (killed instanceof Player) {
-				return getMcMMOXP(killed, MobHunting.getConfigManager().pvpPlayerMcMMOSkillRewardAmount);
+				return getMcMMOXP(killed, this.pvpPlayerMcMMOSkillRewardAmount);
 			} else if (killed instanceof Blaze)
-				return getMcMMOXP(killed, MobHunting.getConfigManager().blazeMcMMOSkillRewardAmount);
+				return getMcMMOXP(killed, this.blazeMcMMOSkillRewardAmount);
 			else if (killed instanceof Creeper)
-				return getMcMMOXP(killed, MobHunting.getConfigManager().creeperMcMMOSkillRewardAmount);
+				return getMcMMOXP(killed, this.creeperMcMMOSkillRewardAmount);
 			else if (killed instanceof Silverfish)
-				return getMcMMOXP(killed, MobHunting.getConfigManager().silverfishMcMMOSkillRewardAmount);
+				return getMcMMOXP(killed, this.silverfishMcMMOSkillRewardAmount);
 			else if (killed instanceof Enderman)
-				return getMcMMOXP(killed, MobHunting.getConfigManager().endermanMcMMOSkillRewardAmount);
+				return getMcMMOXP(killed, this.endermanMcMMOSkillRewardAmount);
 			else if (killed instanceof Giant)
-				return getMcMMOXP(killed, MobHunting.getConfigManager().giantMcMMOSkillRewardAmount);
+				return getMcMMOXP(killed, this.giantMcMMOSkillRewardAmount);
 			else if (killed instanceof Skeleton && ((Skeleton) killed).getSkeletonType() == SkeletonType.NORMAL)
-				return getMcMMOXP(killed, MobHunting.getConfigManager().skeletonMcMMOSkillRewardAmount);
+				return getMcMMOXP(killed, this.skeletonMcMMOSkillRewardAmount);
 			else if (killed instanceof Skeleton && ((Skeleton) killed).getSkeletonType() == SkeletonType.WITHER)
-				return getMcMMOXP(killed, MobHunting.getConfigManager().witherSkeletonMcMMOSkillRewardAmount);
+				return getMcMMOXP(killed, this.witherSkeletonMcMMOSkillRewardAmount);
 			else if (killed instanceof CaveSpider)
 				// CaveSpider is a subclass of Spider
-				return getMcMMOXP(killed, MobHunting.getConfigManager().caveSpiderMcMMOSkillRewardAmount);
+				return getMcMMOXP(killed, this.caveSpiderMcMMOSkillRewardAmount);
 			else if (killed instanceof Spider)
-				return getMcMMOXP(killed, MobHunting.getConfigManager().spiderMcMMOSkillRewardAmount);
+				return getMcMMOXP(killed, this.spiderMcMMOSkillRewardAmount);
 			else if (killed instanceof Witch)
-				return getMcMMOXP(killed, MobHunting.getConfigManager().witchMcMMOSkillRewardAmount);
+				return getMcMMOXP(killed, this.witchMcMMOSkillRewardAmount);
 			else if (killed instanceof PigZombie)
 				// PigZombie is a subclass of Zombie.
-				return getMcMMOXP(killed, MobHunting.getConfigManager().zombiePigManMcMMOSkillRewardAmount);
+				return getMcMMOXP(killed, this.zombiePigManMcMMOSkillRewardAmount);
 			else if (killed instanceof Zombie)
-				return getMcMMOXP(killed, MobHunting.getConfigManager().zombieMcMMOSkillRewardAmount);
+				return getMcMMOXP(killed, this.zombieMcMMOSkillRewardAmount);
 			else if (killed instanceof Ghast)
-				return getMcMMOXP(killed, MobHunting.getConfigManager().ghastMcMMOSkillRewardAmount);
+				return getMcMMOXP(killed, this.ghastMcMMOSkillRewardAmount);
 			else if (killed instanceof MagmaCube)
 				// MagmaCube is a subclass of Slime
-				return getMcMMOXP(killed, MobHunting.getConfigManager().magmaCubeMcMMOSkillRewardAmount);
+				return getMcMMOXP(killed, this.magmaCubeMcMMOSkillRewardAmount);
 			else if (killed instanceof Slime)
-				return getMcMMOXP(killed, MobHunting.getConfigManager().slimeMcMMOSkillRewardAmount);
+				return getMcMMOXP(killed, this.slimeMcMMOSkillRewardAmount);
 			else if (killed instanceof EnderDragon)
-				return getMcMMOXP(killed, MobHunting.getConfigManager().enderdragonMcMMOSkillRewardAmount);
+				return getMcMMOXP(killed, this.enderdragonMcMMOSkillRewardAmount);
 			else if (killed instanceof Wither)
-				return getMcMMOXP(killed, MobHunting.getConfigManager().witherMcMMOSkillRewardAmount);
+				return getMcMMOXP(killed, this.witherMcMMOSkillRewardAmount);
 			else if (killed instanceof IronGolem)
-				return getMcMMOXP(killed, MobHunting.getConfigManager().ironGolemMcMMOSkillRewardAmount);
+				return getMcMMOXP(killed, this.ironGolemMcMMOSkillRewardAmount);
 
 			// Passive mobs
 			else if (killed instanceof Bat)
-				return getMcMMOXP(killed, MobHunting.getConfigManager().batMcMMOSkillRewardAmount);
+				return getMcMMOXP(killed, this.batMcMMOSkillRewardAmount);
 			else if (killed instanceof Chicken)
-				return getMcMMOXP(killed, MobHunting.getConfigManager().chickenMcMMOSkillRewardAmount);
+				return getMcMMOXP(killed, this.chickenMcMMOSkillRewardAmount);
 			else if (killed instanceof Cow)
 				if (killed instanceof MushroomCow)
 					// MushroomCow is a subclass of Cow
-					return getMcMMOXP(killed, MobHunting.getConfigManager().mushroomCowMcMMOSkillRewardAmount);
+					return getMcMMOXP(killed, this.mushroomCowMcMMOSkillRewardAmount);
 				else
-					return getMcMMOXP(killed, MobHunting.getConfigManager().cowMcMMOSkillRewardAmount);
+					return getMcMMOXP(killed, this.cowMcMMOSkillRewardAmount);
 			else if (killed instanceof Horse)
-				return getMcMMOXP(killed, MobHunting.getConfigManager().horseMcMMOSkillRewardAmount);
+				return getMcMMOXP(killed, this.horseMcMMOSkillRewardAmount);
 			else if (killed instanceof Ocelot)
-				return getMcMMOXP(killed, MobHunting.getConfigManager().ocelotMcMMOSkillRewardAmount);
+				return getMcMMOXP(killed, this.ocelotMcMMOSkillRewardAmount);
 			else if (killed instanceof Pig)
-				return getMcMMOXP(killed, MobHunting.getConfigManager().pigMcMMOSkillRewardAmount);
+				return getMcMMOXP(killed, this.pigMcMMOSkillRewardAmount);
 			else if (killed instanceof Sheep)
-				return getMcMMOXP(killed, MobHunting.getConfigManager().sheepMcMMOSkillRewardAmount);
+				return getMcMMOXP(killed, this.sheepMcMMOSkillRewardAmount);
 			else if (killed instanceof Snowman)
-				return getMcMMOXP(killed, MobHunting.getConfigManager().snowmanMcMMOSkillRewardAmount);
+				return getMcMMOXP(killed, this.snowmanMcMMOSkillRewardAmount);
 			else if (killed instanceof Squid)
-				return getMcMMOXP(killed, MobHunting.getConfigManager().squidMcMMOSkillRewardAmount);
+				return getMcMMOXP(killed, this.squidMcMMOSkillRewardAmount);
 			else if (killed instanceof Villager)
-				return getMcMMOXP(killed, MobHunting.getConfigManager().villagerMcMMOSkillRewardAmount);
+				return getMcMMOXP(killed, this.villagerMcMMOSkillRewardAmount);
 			else if (killed instanceof Wolf)
-				return getMcMMOXP(killed, MobHunting.getConfigManager().wolfMcMMOSkillRewardAmount);
+				return getMcMMOXP(killed, this.wolfMcMMOSkillRewardAmount);
 			else if (killed instanceof Item && ((Item) killed).getItemStack().getType() == Material.RAW_FISH) {
 				ItemStack is = ((Item) killed).getItemStack();
 				if (is.getData().getData() == (byte) 0) {
-					return getMcMMOXP(killed, MobHunting.getConfigManager().rawfishMcMMOSkillRewardAmount);
+					return getMcMMOXP(killed, this.rawfishMcMMOSkillRewardAmount);
 				} else if (is.getData().getData() == (byte) 1) {
-					return getMcMMOXP(killed, MobHunting.getConfigManager().rawsalmonMcMMOSkillRewardAmount);
+					return getMcMMOXP(killed, this.rawsalmonMcMMOSkillRewardAmount);
 				} else if (is.getData().getData() == (byte) 2) {
-					return getMcMMOXP(killed, MobHunting.getConfigManager().clownfishMcMMOSkillRewardAmount);
+					return getMcMMOXP(killed, this.clownfishMcMMOSkillRewardAmount);
 				} else if (is.getData().getData() == (byte) 3) {
-					return getMcMMOXP(killed, MobHunting.getConfigManager().pufferfishMcMMOSkillRewardAmount);
+					return getMcMMOXP(killed, this.pufferfishMcMMOSkillRewardAmount);
 				}
 			}
 		}
@@ -3740,9 +3699,9 @@ public class ConfigManager extends AutoConfig {
 	}
 
 	public boolean isCmdGointToBeExcuted(Entity killed) {
-		double randomDouble = MobHunting.getMobHuntingManager().mRand.nextDouble();
+		double randomDouble = mobHuntingManager.mRand.nextDouble();
 		double runChanceDouble = getCmdRunChance(killed);
-		Messages.debug("Command will be run if chance: %s > %s (random number)", runChanceDouble, randomDouble);
+		messages.debug("Command will be run if chance: %s > %s (random number)", runChanceDouble, randomDouble);
 		if (killed instanceof Player)
 			return randomDouble < pvpKillCmdRunChance;
 		else

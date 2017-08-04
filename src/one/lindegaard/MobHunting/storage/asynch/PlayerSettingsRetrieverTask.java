@@ -1,25 +1,29 @@
 package one.lindegaard.MobHunting.storage.asynch;
 
-import java.sql.SQLException;
-import java.util.HashSet;
-
-import org.bukkit.OfflinePlayer;
-
+import one.lindegaard.MobHunting.ConfigManager;
 import one.lindegaard.MobHunting.Messages;
-import one.lindegaard.MobHunting.MobHunting;
 import one.lindegaard.MobHunting.storage.DataStoreException;
 import one.lindegaard.MobHunting.storage.IDataStore;
 import one.lindegaard.MobHunting.storage.PlayerSettings;
 import one.lindegaard.MobHunting.storage.UserNotFoundException;
+import org.bukkit.OfflinePlayer;
+
+import java.sql.SQLException;
+import java.util.HashSet;
 
 public class PlayerSettingsRetrieverTask implements IDataStoreTask<PlayerSettings> {
 
 	private OfflinePlayer mPlayer;
 	private HashSet<Object> mWaiting;
 
-	public PlayerSettingsRetrieverTask(OfflinePlayer player, HashSet<Object> waiting) {
+	private Messages messages;
+	private ConfigManager configManager;
+
+	public PlayerSettingsRetrieverTask(OfflinePlayer player, HashSet<Object> waiting, Messages messages, ConfigManager configManager) {
 		mPlayer = player;
 		mWaiting = waiting;
+		this.messages = messages;
+		this.configManager = configManager;
 	}
 
 	//private void updateUsingCache(Set<PlayerSettings> achievements) {
@@ -38,8 +42,8 @@ public class PlayerSettingsRetrieverTask implements IDataStoreTask<PlayerSetting
 			try {
 				return store.loadPlayerSettings(mPlayer);
 			} catch (UserNotFoundException e) {
-				Messages.debug("Saving new PlayerSettings for %s to database.", mPlayer.getName());
-				PlayerSettings ps = new PlayerSettings(mPlayer, MobHunting.getConfigManager().learningMode, false);
+				messages.debug("Saving new PlayerSettings for %s to database.", mPlayer.getName());
+				PlayerSettings ps = new PlayerSettings(mPlayer, configManager.learningMode, false);
 				try {
 					store.insertPlayerSettings(ps);
 				} catch (DataStoreException e1) {

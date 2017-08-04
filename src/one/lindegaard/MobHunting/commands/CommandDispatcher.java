@@ -1,21 +1,14 @@
 package one.lindegaard.MobHunting.commands;
 
+import one.lindegaard.MobHunting.Messages;
+import org.bukkit.ChatColor;
+import org.bukkit.command.*;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
-
-import org.bukkit.ChatColor;
-import org.bukkit.command.BlockCommandSender;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.ConsoleCommandSender;
-import org.bukkit.command.RemoteConsoleCommandSender;
-import org.bukkit.command.TabCompleter;
-
-import one.lindegaard.MobHunting.Messages;
 
 /**
  * This allows sub commands to be handled in a clean easily expandable way. Just
@@ -30,6 +23,8 @@ public class CommandDispatcher implements CommandExecutor, TabCompleter {
     private HashMap<String, ICommand> mCommands;
     private String mRootCommandName;
     private String mRootCommandDescription;
+
+    private Messages messages;
 
     public CommandDispatcher(String commandName, String description) {
         mRootCommandName = commandName;
@@ -74,13 +69,13 @@ public class CommandDispatcher implements CommandExecutor, TabCompleter {
         if (!com.canBeConsole()
                 && (sender instanceof ConsoleCommandSender || sender instanceof RemoteConsoleCommandSender)) {
             sender.sendMessage(ChatColor.RED
-                    + Messages.getString("mobhunting.commands.base.noconsole",
+                    + messages.getString("mobhunting.commands.base.noconsole",
                     "command", "/" + label + " " + subCommand));
             return true;
         }
         if (!com.canBeCommandBlock() && sender instanceof BlockCommandSender) {
             sender.sendMessage(ChatColor.RED
-                    + Messages.getString(
+                    + messages.getString(
                     "mobhunting.commands.base.nocommandblock",
                     "command", "/" + label + " " + subCommand));
             return true;
@@ -90,7 +85,7 @@ public class CommandDispatcher implements CommandExecutor, TabCompleter {
         if (com.getPermission() != null
                 && !sender.hasPermission(com.getPermission())) {
             sender.sendMessage(ChatColor.RED
-                    + Messages.getString(
+                    + messages.getString(
                     "mobhunting.commands.base.nopermission", "command",
                     "/" + label + " " + subCommand, "perm",
                     com.getPermission()));
@@ -109,7 +104,7 @@ public class CommandDispatcher implements CommandExecutor, TabCompleter {
             }
 
             usageString = ChatColor.RED
-                    + Messages.getString("mobhunting.commands.base.usage",
+                    + messages.getString("mobhunting.commands.base.usage",
                     "usage", usageString);
             sender.sendMessage(usageString);
         }
@@ -119,22 +114,22 @@ public class CommandDispatcher implements CommandExecutor, TabCompleter {
 
     private void displayUsage(CommandSender sender, String label,
                               String subcommand) {
-        String usage = "";
+        StringBuilder usage = new StringBuilder();
 
         if (subcommand != null) {
             sender.sendMessage(ChatColor.RED
-                    + Messages.getString(
+                    + messages.getString(
                     "mobhunting.commands.base.unknowncommand",
                     "command", ChatColor.RESET + "/" + label + " "
                             + ChatColor.GOLD + subcommand));
-            sender.sendMessage(Messages
+            sender.sendMessage(messages
                     .getString("mobhunting.commands.base.validcommands"));
         } else {
             sender.sendMessage(ChatColor.RED
-                    + Messages.getString("mobhunting.commands.base.nocommand",
+                    + messages.getString("mobhunting.commands.base.nocommand",
                     "command", ChatColor.RESET + "/" + label
                             + ChatColor.GOLD + " <command>"));
-            sender.sendMessage(Messages
+            sender.sendMessage(messages
                     .getString("mobhunting.commands.base.validcommands"));
         }
 
@@ -143,23 +138,23 @@ public class CommandDispatcher implements CommandExecutor, TabCompleter {
         // Build the list
         for (Entry<String, ICommand> ent : mCommands.entrySet()) {
             if (odd)
-                usage += ChatColor.WHITE;
+                usage.append(ChatColor.WHITE);
             else
-                usage += ChatColor.GRAY;
+                usage.append(ChatColor.GRAY);
             odd = !odd;
 
             if (first)
-                usage += ent.getKey();
+                usage.append(ent.getKey());
             else
-                usage += ", " + ent.getKey();
+                usage.append(", ").append(ent.getKey());
 
             first = false;
         }
 
-        sender.sendMessage(usage);
+        sender.sendMessage(usage.toString());
 
         if (subcommand == null) {
-            sender.sendMessage(Messages
+            sender.sendMessage(messages
                     .getString("mobhunting.commands.base.morehelp"));
         }
 
@@ -255,7 +250,7 @@ public class CommandDispatcher implements CommandExecutor, TabCompleter {
 
         @Override
         public String getDescription() {
-            return Messages
+            return messages
                     .getString("mobhunting.commands.base.help.description");
         }
 
@@ -277,7 +272,7 @@ public class CommandDispatcher implements CommandExecutor, TabCompleter {
 
             sender.sendMessage(ChatColor.GOLD + mRootCommandDescription);
             sender.sendMessage(ChatColor.GOLD
-                    + Messages
+                    + messages
                     .getString("mobhunting.commands.base.help.commands"));
 
             for (ICommand command : mCommands.values()) {

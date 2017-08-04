@@ -1,21 +1,20 @@
 package one.lindegaard.MobHunting.grinding;
 
+import one.lindegaard.MobHunting.ConfigManager;
 import org.bukkit.entity.Entity;
-
-import one.lindegaard.MobHunting.MobHunting;
 
 public class GrindingInformation {
 
 	private int entityId;
 	private Entity killed;
 	private long timeOfDeath;
-	private double cDampnerRange = MobHunting.getConfigManager().grindingDetectionRange;
+	private double cDampnerRange;
 
-	GrindingInformation(Entity killed) {
+	GrindingInformation(ConfigManager configManager,Entity killed) {
 		entityId = killed.getEntityId();
 		this.killed = killed;
 		timeOfDeath=System.currentTimeMillis();
-		cDampnerRange = MobHunting.getConfigManager().grindingDetectionRange;
+		cDampnerRange = configManager.grindingDetectionRange;
 	}
 
 	/**
